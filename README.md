@@ -1,8 +1,8 @@
 # Joshua de Freitas
 
-### Data engineer at EY building reliable data and AI systems.
+### Senior Data Engineer at EY Wavespace building data platforms and agentic AI systems.
 
-I work across data engineering, analytics, software design, and applied research. My focus is on turning complex inputs into systems that are dependable, testable, and useful to the people who rely on them.
+I work across data engineering, analytics, software design, and applied research. My focus is on turning complex tax and financial data into systems that are dependable, reusable, and useful to the people who rely on them.
 
 My public work explores:
 
@@ -26,6 +26,7 @@ I’m developing a deeper body of work around dependable data products, AI-assis
 ## Elsewhere
 
 - [Personal site](https://joshuadefreitas.github.io)
+- [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
 - [All public repositories](https://github.com/joshuadefreitas?tab=repositories)
 
 For collaboration or thoughtful conversations about data and AI systems, reach me at [jamesdefreitas@outlook.com](mailto:jamesdefreitas@outlook.com).
