@@ -22,7 +22,6 @@ Ghalvera studies the reliability of evidence — whether the instrument recorded
 | Repository | What it shows |
 | --- | --- |
 | [`deep-lob`](https://github.com/joshuadefreitas/deep-lob) | On data with provably no signal, a random split of overlapping windows reports 66% accuracy against a 40% baseline; a purged split reports 33%. The closed-form ceiling on manufactured accuracy is derived and verified. |
-| [`time-series-experiments`](https://github.com/joshuadefreitas/time-series-experiments) | Reproducible forecasting experiments across regimes, volatility, chaos, and structural breaks |
 | [`neural-field-study`](https://github.com/joshuadefreitas/neural-field-study) | A deterministic computational neuroscience field study, seeded and replayable |
 | [`trace-npm`](https://github.com/joshuadefreitas/trace-npm) | npm asks you to approve install scripts but never tells you what they did. This runs one under a sandbox and reports files touched, processes spawned, network reached. |
 
