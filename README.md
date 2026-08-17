@@ -4,24 +4,31 @@
 
 I work across data engineering, analytics, software design, and applied research. My focus is on turning complex tax and financial data into systems that are dependable, reusable, and useful to the people who rely on them.
 
-My public work explores:
+Alongside that I run two independent research laboratories. They share an evidence standard and nothing else.
 
-- Data platforms and Databricks workflows
-- AI-enabled data and document systems
-- Reproducible forecasting and machine learning experiments
-- Simulation, visualization, and research software
+## Laboratories
+
+| | Question |
+| --- | --- |
+| **[Lathilda](https://lathilda.github.io)** | At what scale does interactive visual analysis break, and what has to change — in the pipeline and on the GPU — to move that boundary? |
+| **[Ghalvera](https://ghalvera.github.io)** | Can you trust what the record says — and would you know if you couldn't? |
+
+Lathilda builds instruments for data that has outgrown the tools built to look at it: a GPU compute-and-render engine, the pipeline that feeds it, and the studies that test both.
+
+Ghalvera studies the reliability of evidence — whether the instrument recorded the event at all, whether the record names the right actor, and whether it can be retrieved intact. Most results so far are cases where the answer was no while every available indicator said otherwise.
 
 ## Selected work
 
 | Repository | What it shows |
 | --- | --- |
-| [`dbx-core`](https://github.com/joshuadefreitas/dbx-core) | A notebook-free Databricks project built around Python packages and remote execution |
-| [`deep-lob`](https://github.com/joshuadefreitas/deep-lob) | An end-to-end PyTorch experiment on synthetic limit order book data |
+| [`deep-lob`](https://github.com/joshuadefreitas/deep-lob) | On data with provably no signal, a random split of overlapping windows reports 66% accuracy against a 40% baseline; a purged split reports 33%. The closed-form ceiling on manufactured accuracy is derived and verified. |
 | [`time-series-experiments`](https://github.com/joshuadefreitas/time-series-experiments) | Reproducible forecasting experiments across regimes, volatility, chaos, and structural breaks |
+| [`neural-field-study`](https://github.com/joshuadefreitas/neural-field-study) | A deterministic computational neuroscience field study, seeded and replayable |
+| [`trace-npm`](https://github.com/joshuadefreitas/trace-npm) | npm asks you to approve install scripts but never tells you what they did. This runs one under a sandbox and reports files touched, processes spawned, network reached. |
 
-## Currently building
+## How I publish
 
-I’m developing a deeper body of work around dependable data products, AI-assisted workflows, deterministic simulation, and interactive technical systems. The common thread is making complex behavior easier to reason about.
+Findings state what they did not establish. Tests assert what a tool *cannot* do, so a documented limit cannot quietly become false. Where a result turned out to be wrong, the wrong version stays in the history rather than being edited away — the retractions have been more useful than the confirmations.
 
 ## Elsewhere
 
