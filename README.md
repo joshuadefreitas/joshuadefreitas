@@ -1,33 +1,33 @@
 # Joshua de Freitas
 
-### Senior Data Engineer at EY Wavespace building data platforms and agentic AI systems.
+### Building rigorous systems at the edge of computation, intelligence, and security.
 
-I work across data engineering, analytics, software design, and applied research. My focus is on turning complex tax and financial data into systems that are dependable, reusable, and useful to the people who rely on them.
-
-Alongside that I run two independent research laboratories. They share an evidence standard and nothing else.
+I build research instruments and software for questions that resist shallow answers. My work moves between alternative computation, evidentiary security, deterministic simulation, data systems, and tools that make hidden behaviour inspectable.
 
 ## Laboratories
 
-| | Question |
+| | Focus |
 | --- | --- |
-| **[Lathilda](https://lathilda.github.io)** | At what scale does interactive visual analysis break, and what has to change — in the pipeline and on the GPU — to move that boundary? |
-| **[Ghalvera](https://ghalvera.github.io)** | Can you trust what the record says — and would you know if you couldn't? |
+| **[Lathilda](https://lathilda.github.io)** | Other ways to compute: alternative substrates, execution models, and public instruments that make those ideas tangible. |
+| **[Ghalvera](https://ghalvera.github.io)** | Whether a security record genuinely supports the conclusion attached to it—and what it takes to prove the difference. |
 
-Lathilda builds instruments for data that has outgrown the tools built to look at it: a GPU compute-and-render engine, the pipeline that feeds it, and the studies that test both.
+Lathilda explores how computers can be built, programmed, and experienced differently. Ghalvera studies evidentiary sufficiency under valid verification: authorization, attribution, completeness, and consequence.
 
-Ghalvera studies the reliability of evidence — whether the instrument recorded the event at all, whether the record names the right actor, and whether it can be retrieved intact. Most results so far are cases where the answer was no while every available indicator said otherwise.
+## Independent systems
+
+**Global Desk** is a private, independent world-intelligence and contemporary-history system. It preserves daily briefings as structured historical data, tracks provenance and uncertainty, and follows events across time rather than treating headlines as isolated facts. Its purpose is informed citizenship, not personalization.
 
 ## Selected work
 
 | Repository | What it shows |
 | --- | --- |
-| [`deep-lob`](https://github.com/joshuadefreitas/deep-lob) | On data with provably no signal, a random split of overlapping windows reports 66% accuracy against a 40% baseline; a purged split reports 33%. The closed-form ceiling on manufactured accuracy is derived and verified. |
-| [`neural-field-study`](https://github.com/joshuadefreitas/neural-field-study) | A deterministic computational neuroscience field study, seeded and replayable |
-| [`trace-npm`](https://github.com/joshuadefreitas/trace-npm) | npm asks you to approve install scripts but never tells you what they did. This runs one under a sandbox and reports files touched, processes spawned, network reached. |
+| [`deep-lob`](https://github.com/joshuadefreitas/deep-lob) | How overlapping-window evaluation can manufacture predictive performance from data with no real signal. |
+| [`neural-field-study`](https://github.com/joshuadefreitas/neural-field-study) | A deterministic, seeded and replayable study of local activation and field dynamics. |
+| [`trace-npm`](https://github.com/joshuadefreitas/trace-npm) | Runtime evidence for what install scripts actually touch, spawn, and reach. |
 
-## How I publish
+## How I work
 
-Findings state what they did not establish. Tests assert what a tool *cannot* do, so a documented limit cannot quietly become false. Where a result turned out to be wrong, the wrong version stays in the history rather than being edited away — the retractions have been more useful than the confirmations.
+I care about mechanisms, not slogans. Important claims carry their evidence, their limits, and the conditions under which they would fail. Corrections remain visible. A beautiful interface is welcome, but it should reveal the system underneath rather than conceal it.
 
 ## Elsewhere
 
@@ -35,6 +35,4 @@ Findings state what they did not establish. Tests assert what a tool *cannot* do
 - [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
 - [All public repositories](https://github.com/joshuadefreitas?tab=repositories)
 
-For collaboration or thoughtful conversations about data and AI systems, reach me at [jamesdefreitas@outlook.com](mailto:jamesdefreitas@outlook.com).
-
-<sub>Public repositories describe independent work and do not contain employer or client-confidential information.</sub>
+<sub>Public repositories describe independent work and contain no employer or client-confidential information.</sub>
