@@ -1,36 +1,40 @@
 # Joshua de Freitas
 
-Engineer exploring computation, intelligence, and complex systems.
+**Engineer exploring mathematics, intelligent systems, and the strange behaviour of software.**
 
-I build things to understand them — statistical models, systems experiments, agentic software, simulations, and the occasional strange machine. I like mathematics when it reveals structure, code when it makes an idea tangible, and research that leaves me with better questions than I started with.
+I build things to understand them: statistical models, systems experiments, agentic software, simulations, and occasionally a small machine that asks a larger question. I am drawn to ideas that become clearer when they are made executable—and to results that survive being looked at twice.
 
-## Sekiya Institute
+[Personal site](https://joshuadefreitas.github.io) · [Sekiya](https://sekiyalab.github.io) · [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
 
-[Sekiya](https://sekiyalab.github.io) is my independent institute for computer science, mathematics and computational experimentation. The front page computes — a live, seeded simulation you can replay and scrub in time.
+---
 
-| Area | Questions |
-| --- | --- |
-| **Models & Statistics** | Model systems under change — releases, drift, delayed feedback, point-in-time truth |
-| **Systems & Security** | What a system's own record does and does not prove about what actually happened |
-| **Agentic Systems** | Whether an agent's account of its own work can be trusted, and how you would know |
-| **Computation** | Deterministic, reproducible, inspectable computation — the picture is provably what was computed |
+## Sekiya
 
-## Selected experiments
+[Sekiya](https://sekiyalab.github.io) is my independent institute for computer science, mathematics, and computational experimentation.
 
-**Can you reconstruct what was actually knowable then?** — [`clock-dataset`](https://github.com/SekiyaLab/clock-dataset) explores point-in-time reconstruction and the gap between historical information and what later became known.
+| Research map | Questions in view |
+| :-- | :-- |
+| **Models & Statistics** | What changes when a decision is made with imperfect, revised, or delayed information? |
+| **Systems & Security** | How can we tell what a system actually did—and whether it is still the system we tested? |
+| **Agentic Systems** | When should an agent's account of its own work be believed, challenged, or reproduced? |
+| **Computation** | What can simulation, visualisation, and unusual deterministic machinery reveal about complex behaviour? |
 
-**Did you deploy the system you actually tested?** — [`release-equivalence`](https://github.com/SekiyaLab/release-equivalence) studies when a release is truly behaviourally equivalent, and when identical-looking artifacts still produce different decisions.
+## Selected work
 
-**Can a model look predictive when the signal is fake?** — [`deep-lob`](https://github.com/SekiyaLab/deep-lob) investigates evaluation leakage in short-horizon market prediction and the protocols that expose it.
-
-**What does an npm install really touch?** — [`trace-npm`](https://github.com/SekiyaLab/trace-npm) runs install scripts under `strace` and turns filesystem, process, and network activity into something you can inspect.
+| Work | The question |
+| :-- | :-- |
+| [**Clock Dataset**](https://github.com/SekiyaLab/clock-dataset) | *What was actually knowable at the moment of a decision—not merely what the database says now?* |
+| [**Release Equivalence**](https://github.com/SekiyaLab/release-equivalence) | *Is the system after release still behaving like the one that was evaluated?* |
+| [**Degradation Diagnosis**](https://github.com/SekiyaLab/degradation-diagnosis) | *When quality shifts and labels lag, what can evidence diagnose—and what remains ambiguous?* |
+| [**DeepLOB**](https://github.com/SekiyaLab/deep-lob) | *How can an evaluation pipeline make a no-signal market simulator look predictive?* |
+| [**trace-npm**](https://github.com/SekiyaLab/trace-npm) | *What does an npm lifecycle script actually touch, spawn, and contact?* |
 
 ## Mundias
 
-A separate, longer-running project: a private record of world events, forecasts, and financial judgment over time. It preserves what was knowable when a call was made, then scores it against what actually happened — corrections kept, not edited away.
+**Mundias** is a separate, long-running record of world events, forecasts, and financial judgment: preserve the view at the time of a call, then learn from what happened without rewriting the original record.
 
-## Elsewhere
+---
 
-[Personal site](https://joshuadefreitas.github.io) · [Sekiya](https://sekiyalab.github.io) · [Sekiya on GitHub](https://github.com/SekiyaLab) · [trace-npm on npm](https://www.npmjs.com/package/trace-npm) · [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
+Explore the [personal site](https://joshuadefreitas.github.io), visit [Sekiya](https://sekiyalab.github.io), or browse the [SekiyaLab organisation](https://github.com/SekiyaLab).
 
 <sub>Public repositories describe independent work and contain no employer or client-confidential information.</sub>
