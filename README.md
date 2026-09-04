@@ -6,16 +6,14 @@ I build things to understand them — statistical models, systems experiments, a
 
 ## Sekiya Institute
 
-[Sekiya](https://github.com/SekiyaLab) is my independent home for computer science, mathematics, and computational experimentation.
+[Sekiya](https://sekiyalab.github.io) is my independent institute for computer science, mathematics and computational experimentation. The front page computes — a live, seeded simulation you can replay and scrub in time.
 
-It is where I explore models, systems, security, agents, and unusual forms of computation — mostly by building, experimenting, and seeing what happens.
-
-| Area | |
+| Area | Questions |
 | --- | --- |
-| **Models & Statistics** | Model systems under change: releases, drift, delayed feedback, point-in-time truth. [`release-equivalence`](https://github.com/SekiyaLab/release-equivalence) · [`degradation-diagnosis`](https://github.com/SekiyaLab/degradation-diagnosis) · [`decision-assurance`](https://github.com/SekiyaLab/decision-assurance) · [`clock-dataset`](https://github.com/SekiyaLab/clock-dataset) · [`deep-lob`](https://github.com/SekiyaLab/deep-lob) |
-| **Systems & Security** | What a system's own record of events does and does not prove — tamper-evident ledgers, scenario ranges, and install-time forensics. [`trace-npm`](https://github.com/SekiyaLab/trace-npm) |
-| **Agentic Systems** | Whether an agent's account of its own work can be trusted, and how you would know. |
-| **Computation** | Deterministic simulation and rendering, where the picture is provably what was computed, and interactive studies of how disturbances cascade through networks. |
+| **Models & Statistics** | Model systems under change — releases, drift, delayed feedback, point-in-time truth |
+| **Systems & Security** | What a system's own record does and does not prove about what actually happened |
+| **Agentic Systems** | Whether an agent's account of its own work can be trusted, and how you would know |
+| **Computation** | Deterministic, reproducible, inspectable computation — the picture is provably what was computed |
 
 ## Selected experiments
 
@@ -33,6 +31,6 @@ A separate, longer-running project: a private record of world events, forecasts,
 
 ## Elsewhere
 
-[Personal site](https://joshuadefreitas.github.io) · [Sekiya](https://github.com/SekiyaLab) · [trace-npm on npm](https://www.npmjs.com/package/trace-npm) · [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
+[Personal site](https://joshuadefreitas.github.io) · [Sekiya](https://sekiyalab.github.io) · [Sekiya on GitHub](https://github.com/SekiyaLab) · [trace-npm on npm](https://www.npmjs.com/package/trace-npm) · [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
 
 <sub>Public repositories describe independent work and contain no employer or client-confidential information.</sub>
