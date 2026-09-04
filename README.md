@@ -1,37 +1,40 @@
 # Joshua de Freitas
 
-### Building rigorous systems at the edge of computation, intelligence, and security.
+Data / systems / AI engineer with a growing focus on computer science research — systems, security, statistical modelling, agentic systems, and computational experimentation.
 
-I build research instruments and software for questions that resist shallow answers. My work moves between alternative computation, evidentiary security, deterministic simulation, data systems, and tools that make hidden behaviour inspectable.
+I'm curious about how computers and mathematics actually work underneath, and I build small, sharp experiments to find out — then keep building until the experiment becomes something real. Most of that independent research now happens at Sekiya.
 
-## Laboratories
+## Sekiya
 
-| | Focus |
+[Sekiya](https://github.com/SekiyaLab) is my independent institute for computer science, mathematics, and computational experimentation: discover, experiment, understand, build, show.
+
+Four loose areas hold the work: **Models & Statistics** · **Systems & Security** · **Agentic Systems** · **Computation**. Sekiya continues the strongest work from two earlier research identities of mine, Ghalvera and Lathilda, now preserved as historical lineage rather than active labs.
+
+### Selected work
+
+| Repository | What's interesting |
 | --- | --- |
-| **[Lathilda](https://lathilda.github.io)** | Other ways to compute: alternative substrates, execution models, and public instruments that make those ideas tangible. |
-| **[Ghalvera](https://ghalvera.github.io)** | Whether a security record genuinely supports the conclusion attached to it—and what it takes to prove the difference. |
+| [`release-equivalence`](https://github.com/SekiyaLab/release-equivalence) | Is the system you actually deployed behaviourally equivalent to the one you tested — or just hash-identical? |
+| [`deep-lob`](https://github.com/SekiyaLab/deep-lob) | A common evaluation method made a model look predictive on data with zero real signal. The purge/embargo protocol that caught it. |
+| `systems-security-core` | A tamper-evident action ledger and scenario range built to find the exact point where a security tool's account of events stops being true. |
+| [`trace-npm`](https://github.com/SekiyaLab/trace-npm) | A published CLI (originally built under Ghalvera) that runs an npm install script under `strace` and shows exactly what it touched, spawned, and reached. |
+| `gpu-simulation-engine` | A WebGPU engine where the CPU and GPU are required to produce bit-identical output, so a rendering is evidence rather than illustration. |
+| `cascade-field-study` | An interactive study of when a small disturbance in a networked system dies out, stays bounded, or cascades — built on the engine above. |
 
-Lathilda explores how computers can be built, programmed, and experienced differently. Ghalvera studies evidentiary sufficiency under valid verification: authorization, attribution, completeness, and consequence.
+`release-equivalence` is one of five related studies on model systems under change (delayed feedback, drift, decision assurance, point-in-time truth); the rest are on the [Sekiya org page](https://github.com/SekiyaLab).
 
-## Independent systems
+## Mundias
 
-**Global Desk** is a private, independent world-intelligence and contemporary-history system. It preserves daily briefings as structured historical data, tracks provenance and uncertainty, and follows events across time rather than treating headlines as isolated facts. Its purpose is informed citizenship, not personalization.
-
-## Selected work
-
-| Repository | What it shows |
-| --- | --- |
-| [`deep-lob`](https://github.com/joshuadefreitas/deep-lob) | How overlapping-window evaluation can manufacture predictive performance from data with no real signal. |
-| [`neural-field-study`](https://github.com/joshuadefreitas/neural-field-study) | A deterministic, seeded and replayable study of local activation and field dynamics. |
-| [`trace-npm`](https://github.com/joshuadefreitas/trace-npm) | Runtime evidence for what install scripts actually touch, spawn, and reach. |
+A separate, longer-running project: a private record of world events, forecasts and financial judgment over time. It preserves what was knowable at the time a call was made, then scores it against what actually happened — corrections included, not edited away.
 
 ## How I work
 
-I care about mechanisms, not slogans. Important claims carry their evidence, their limits, and the conditions under which they would fail. Corrections remain visible. A beautiful interface is welcome, but it should reveal the system underneath rather than conceal it.
+I'd rather build a small experiment than accept an unverified claim, and I'd rather understand a system well enough to predict how it breaks than follow whatever's trending. A good interface should reveal the mechanism underneath, not hide it.
 
 ## Elsewhere
 
 - [Personal site](https://joshuadefreitas.github.io)
+- [Sekiya](https://github.com/SekiyaLab)
 - [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
 - [All public repositories](https://github.com/joshuadefreitas?tab=repositories)
 
