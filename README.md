@@ -10,14 +10,12 @@ I build things to understand them — statistical models, systems experiments, a
 
 It is where I explore models, systems, security, agents, and unusual forms of computation — mostly by building, experimenting, and seeing what happens.
 
-| Area | Selected work |
+| Area | |
 | --- | --- |
-| **Models & Statistics** | [`release-equivalence`](https://github.com/SekiyaLab/release-equivalence) · [`degradation-diagnosis`](https://github.com/SekiyaLab/degradation-diagnosis) · [`decision-assurance`](https://github.com/SekiyaLab/decision-assurance) · [`clock-dataset`](https://github.com/SekiyaLab/clock-dataset) · [`deep-lob`](https://github.com/SekiyaLab/deep-lob) |
-| **Systems & Security** | [`trace-npm`](https://github.com/SekiyaLab/trace-npm) · `systems-security-core` · `security-decision-invariance` |
-| **Agentic Systems** | *Experiments in progress.* |
-| **Computation** | `gpu-simulation-engine` · `cascade-field-study` |
-
-<sub>Unlinked entries are private for now.</sub>
+| **Models & Statistics** | Model systems under change: releases, drift, delayed feedback, point-in-time truth. [`release-equivalence`](https://github.com/SekiyaLab/release-equivalence) · [`degradation-diagnosis`](https://github.com/SekiyaLab/degradation-diagnosis) · [`decision-assurance`](https://github.com/SekiyaLab/decision-assurance) · [`clock-dataset`](https://github.com/SekiyaLab/clock-dataset) · [`deep-lob`](https://github.com/SekiyaLab/deep-lob) |
+| **Systems & Security** | What a system's own record of events does and does not prove — tamper-evident ledgers, scenario ranges, and install-time forensics. [`trace-npm`](https://github.com/SekiyaLab/trace-npm) |
+| **Agentic Systems** | Whether an agent's account of its own work can be trusted, and how you would know. |
+| **Computation** | Deterministic simulation and rendering, where the picture is provably what was computed, and interactive studies of how disturbances cascade through networks. |
 
 ## Selected experiments
 
