@@ -1,8 +1,12 @@
 # Joshua de Freitas
 
-**Engineer exploring mathematics, intelligent systems, and the strange behaviour of software.**
+**Engineer drawn to complexity, strange behaviour, and things that get more interesting once they start moving.**
 
-I build things to understand them: statistical models, systems experiments, agentic software, simulations, and occasionally a small machine that asks a larger question. I am drawn to ideas that become clearer when they are made executable—and to results that survive being looked at twice.
+I build software, models, experiments, and occasionally something difficult to classify.
+
+Mostly I like finding things out.
+
+Sometimes that means tracing a system until it tells on itself. Sometimes it means building a model to see where it bends. Sometimes it means making something visual because the shape of a problem is easier to see than describe.
 
 [Personal site](https://joshuadefreitas.github.io) · [Sekiya](https://sekiyalab.github.io) · [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
 
@@ -10,31 +14,33 @@ I build things to understand them: statistical models, systems experiments, agen
 
 ## Sekiya
 
-[Sekiya](https://sekiyalab.github.io) is my independent institute for computer science, mathematics, and computational experimentation.
+[Sekiya](https://sekiyalab.github.io) is an independent place for computer science and computational experimentation.
 
-| Research map | Questions in view |
+It is where I keep the things that are too interesting to leave alone.
+
+| Area | Usually somewhere around |
 | :-- | :-- |
-| **Models & Statistics** | What changes when a decision is made with imperfect, revised, or delayed information? |
-| **Systems & Security** | How can we tell what a system actually did—and whether it is still the system we tested? |
-| **Agentic Systems** | When should an agent's account of its own work be believed, challenged, or reproduced? |
-| **Computation** | What can simulation, visualisation, and unusual deterministic machinery reveal about complex behaviour? |
+| **Models & Statistics** | uncertainty, changing information, odd distributions, models misbehaving |
+| **Systems & Security** | traces, hidden state, failure, software behaving differently than advertised |
+| **Agentic Systems** | autonomous software, tool use, coordination, agents with some explaining to do |
+| **Computation** | simulation, visual systems, unusual machinery, complexity made visible |
 
-## Selected work
+## A few things
 
-| Work | The question |
+| Work | Why it exists |
 | :-- | :-- |
-| [**Clock Dataset**](https://github.com/SekiyaLab/clock-dataset) | *What was actually knowable at the moment of a decision—not merely what the database says now?* |
-| [**Release Equivalence**](https://github.com/SekiyaLab/release-equivalence) | *Is the system after release still behaving like the one that was evaluated?* |
-| [**Degradation Diagnosis**](https://github.com/SekiyaLab/degradation-diagnosis) | *When quality shifts and labels lag, what can evidence diagnose—and what remains ambiguous?* |
-| [**DeepLOB**](https://github.com/SekiyaLab/deep-lob) | *How can an evaluation pipeline make a no-signal market simulator look predictive?* |
-| [**trace-npm**](https://github.com/SekiyaLab/trace-npm) | *What does an npm lifecycle script actually touch, spawn, and contact?* |
+| [**Clock Dataset**](https://github.com/SekiyaLab/clock-dataset) | Because knowing something now is not the same as having been able to know it then. |
+| [**Release Equivalence**](https://github.com/SekiyaLab/release-equivalence) | Because software has a habit of becoming a slightly different animal after release. |
+| [**Degradation Diagnosis**](https://github.com/SekiyaLab/degradation-diagnosis) | Because broken systems rarely have the courtesy to fail cleanly. |
+| [**DeepLOB**](https://github.com/SekiyaLab/deep-lob) | Because even a market with no signal can look clever if the experiment is wrong enough. |
+| [**trace-npm**](https://github.com/SekiyaLab/trace-npm) | Because `npm install` can be more adventurous than it looks. |
 
 ## Mundias
 
-**Mundias** is a separate, long-running record of world events, forecasts, and financial judgment: preserve the view at the time of a call, then learn from what happened without rewriting the original record.
+**Mundias** is a long-running record of events, forecasts, and decisions about the world.
+
+The interesting part is not getting every call right. It is keeping the original view intact long enough to find out why.
 
 ---
 
-Explore the [personal site](https://joshuadefreitas.github.io), visit [Sekiya](https://sekiyalab.github.io), or browse the [SekiyaLab organisation](https://github.com/SekiyaLab).
-
-<sub>Public repositories describe independent work and contain no employer or client-confidential information.</sub>
+[Personal site](https://joshuadefreitas.github.io) · [Sekiya](https://sekiyalab.github.io) · [SekiyaLab](https://github.com/SekiyaLab)
