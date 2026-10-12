@@ -1,7 +1,7 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.gif">
-  <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
-  <img alt="Abstract computational topology: systems, evidence routes, and state nodes" src="assets/hero-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-dark.gif">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-light.svg">
+  <img alt="Abstract computational topology: systems, evidence routes, and state nodes" src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-light.svg">
 </picture>
 
 # Joshua de Freitas
