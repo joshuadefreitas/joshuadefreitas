@@ -3,8 +3,8 @@
   "asset_ref": "main",
   "as_of": "2026-10-25",
   "name": "Joshua de Freitas",
-  "positioning": "I build developer tools, autonomous systems, simulation software, and quantitative research infrastructure.",
-  "private_note": "Private projects are described here, not published. Figures are dated snapshots, not live.",
+  "positioning": "Developer tools, simulations, research systems, and whatever else seemed like a good idea at the time.",
+  "private_note": "Some of the more interesting stuff is private, so you get what it does, not the code.",
   "palette": {
     "dark": {
       "page": "#0d1117",
@@ -42,44 +42,6 @@
     "Quantitative research",
     "Systems & security"
   ],
-  "tiles": [
-    {
-      "id": "developer-tools",
-      "title": "Developer tools",
-      "glyph": "terminal",
-      "text": "Inspection and attribution tools for coding-agent work and npm install scripts."
-    },
-    {
-      "id": "autonomous-systems",
-      "title": "Autonomous systems",
-      "glyph": "loop",
-      "text": "Agent behaviour, review loops, and the evidence trail behind autonomous work."
-    },
-    {
-      "id": "simulation",
-      "title": "Simulation & GPU",
-      "glyph": "lattice",
-      "text": "Deterministic simulation, GPU compute, and reproducible numerical behaviour."
-    },
-    {
-      "id": "quantitative-research",
-      "title": "Quantitative research",
-      "glyph": "series",
-      "text": "Point-in-time data, validity-first evaluation, and honest null results."
-    },
-    {
-      "id": "research-infrastructure",
-      "title": "Research infrastructure",
-      "glyph": "layers",
-      "text": "Pre-registration, sealed claims, and evidence gates for computational studies."
-    },
-    {
-      "id": "systems-security",
-      "title": "Systems & security",
-      "glyph": "boundary",
-      "text": "Install-time behaviour, supply-chain tracing, and hardened local tooling."
-    }
-  ],
   "cards": [
     {
       "id": "agentctl",
@@ -87,14 +49,13 @@
       "aside": "working name",
       "visibility": "PRIVATE",
       "maturity": "V1",
-      "thesis": "Coding-agent work-state inspection: sessions, units, reviews and interrupted runs.",
+      "thesis": "Keeps tabs on coding agents: what ran, what finished, what got interrupted, and where to pick it back up.",
       "tech": {
         "icon": "python",
         "label": "Python"
       },
-      "evidence": "4 review rounds · 22 live acceptance checks · 71 tests",
-      "href": null,
-      "alt": "agentctl, private, V1. Coding-agent work-state inspection: sessions, units, reviews and interrupted runs. 4 review rounds, 22 live acceptance checks, 71 tests, as of 2026-10-25. Python."
+      "evidence": "71 tests · 22 live acceptance checks · 4 review rounds",
+      "href": null
     },
     {
       "id": "parity",
@@ -102,14 +63,13 @@
       "aside": "working name",
       "visibility": "PRIVATE",
       "maturity": "V0",
-      "thesis": "Reproducible equivalence testing across heterogeneous compute backends.",
+      "thesis": "Checks that the same computation gives the same answer on different hardware. Harder than it sounds.",
       "tech": {
         "icon": "rust",
         "label": "Rust · wgpu"
       },
-      "evidence": "2 fixtures · equivalence rungs sealed before backend evidence",
-      "href": null,
-      "alt": "parity, private, V0. Reproducible equivalence testing across heterogeneous compute backends. Two fixtures; equivalence rungs sealed before backend evidence, as of 2026-10-25. Rust, wgpu."
+      "evidence": "2 fixtures · equivalence criteria locked in before any backend evidence",
+      "href": null
     },
     {
       "id": "trace-npm",
@@ -117,14 +77,13 @@
       "aside": "",
       "visibility": "PUBLIC",
       "maturity": "ALPHA",
-      "thesis": "See what npm lifecycle scripts actually do at runtime: files, processes and network.",
+      "thesis": "Shows what npm install scripts actually touch, spawn, and call. Good to know before you run one.",
       "tech": {
         "icon": "nodedotjs",
         "label": "npm · Linux"
       },
       "evidence": "Published on npm · strace-based runtime trace",
-      "href": "https://github.com/joshuadefreitas/trace-npm",
-      "alt": "trace-npm, public, alpha. See what npm lifecycle scripts actually do at runtime: files, processes and network. Published on npm; strace-based runtime trace. Node.js, Linux."
+      "href": "https://github.com/joshuadefreitas/trace-npm"
     },
     {
       "id": "computational-studies",
@@ -132,14 +91,13 @@
       "aside": "",
       "visibility": "PUBLIC",
       "maturity": "RESEARCH",
-      "thesis": "Deterministic, reproducible studies: order-book leakage, point-in-time data, neural fields.",
+      "thesis": "Studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields. All reproducible.",
       "tech": {
         "icon": "python",
         "label": "Python · JavaScript"
       },
       "evidence": "7 public Sekiya studies · live neural-field study",
-      "href": "https://sekiyalab.github.io",
-      "alt": "Computational studies, public, research. Deterministic, reproducible studies: order-book leakage, point-in-time data, neural fields. Seven public Sekiya studies and a live neural-field study. Python, JavaScript."
+      "href": "https://sekiyalab.github.io"
     }
   ],
   "tech": [
@@ -178,39 +136,33 @@
   ],
   "public_work": [
     {
-      "name": "trace-npm",
-      "url": "https://github.com/joshuadefreitas/trace-npm",
-      "text": "Runtime tracing of npm lifecycle scripts: files touched, processes spawned, network endpoints contacted.",
-      "stack": "Node.js · Linux"
-    },
-    {
       "name": "neural-field-study",
       "url": "https://github.com/joshuadefreitas/neural-field-study",
-      "text": "A deterministic computational-neuroscience field study with a live, replayable browser model.",
+      "text": "A deterministic neural-field model you can replay live in the browser.",
       "stack": "JavaScript"
     },
     {
       "name": "deep-lob",
       "url": "https://github.com/SekiyaLab/deep-lob",
-      "text": "Synthetic limit-order-book study of when overlapping-window splits invent predictability.",
+      "text": "A synthetic order-book study of when overlapping windows make a model look smarter than it is.",
       "stack": "Python"
     },
     {
       "name": "release-equivalence",
       "url": "https://github.com/SekiyaLab/release-equivalence",
-      "text": "Release identity, behavioural equivalence, and rollback recovery across model-system boundaries.",
+      "text": "When is a new model release actually the same one? Identity, equivalence, rollback.",
       "stack": "Python"
     },
     {
       "name": "clock-dataset",
       "url": "https://github.com/SekiyaLab/clock-dataset",
-      "text": "Point-in-time versus latest-data reconstruction: measuring hindsight bias in historical decisions.",
+      "text": "Point-in-time vs latest data, and how much hindsight sneaks into historical decisions.",
       "stack": "Python"
     },
     {
       "name": "time-series-experiments",
       "url": "https://github.com/joshuadefreitas/time-series-experiments",
-      "text": "Reproducible forecasting experiments across volatility, regimes, structural breaks and chaos.",
+      "text": "Forecasting experiments across volatility, regimes, structural breaks and chaos.",
       "stack": "Python"
     }
   ],

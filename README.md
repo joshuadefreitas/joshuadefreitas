@@ -6,116 +6,37 @@
 
 # Joshua de Freitas
 
-I build developer tools, autonomous systems, simulation software, and quantitative research infrastructure.
+Developer tools, simulations, research systems, and whatever else seemed like a good idea at the time.
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-light.svg" alt="Focus: Developer tools, Autonomous systems, Simulation, Quantitative research, Systems &amp; security" width="480"></picture>
 
-### What I build
+### Current work
 
-<table width="100%">
-<tr>
-<td width="33%" valign="top">
+Some of the more interesting stuff is private, so you get what it does, not the code.
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-developer-tools-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-developer-tools-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-developer-tools-light.svg" alt="Developer tools" width="200"></picture>
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg" alt="agentctl, private, v1, Python" width="480"></picture><br>
+Keeps tabs on coding agents: what ran, what finished, what got interrupted, and where to pick it back up.<br>
+<sub>71 tests · 22 live acceptance checks · 4 review rounds</sub>
 
-<sub>Inspection and attribution tools for coding-agent work and npm install scripts.</sub>
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg" alt="parity, private, v0, Rust · wgpu" width="480"></picture><br>
+Checks that the same computation gives the same answer on different hardware. Harder than it sounds.<br>
+<sub>2 fixtures · equivalence criteria locked in before any backend evidence</sub>
 
-</td>
-<td width="33%" valign="top">
+<a href="https://github.com/joshuadefreitas/trace-npm"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg" alt="trace-npm, public, alpha, npm · Linux" width="480"></picture></a><br>
+Shows what npm install scripts actually touch, spawn, and call. Good to know before you run one.<br>
+<sub>Published on npm · strace-based runtime trace</sub>
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-autonomous-systems-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-autonomous-systems-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-autonomous-systems-light.svg" alt="Autonomous systems" width="200"></picture>
+<a href="https://sekiyalab.github.io"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-light.svg" alt="Computational studies, public, research, Python · JavaScript" width="480"></picture></a><br>
+Studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields. All reproducible.<br>
+<sub>7 public Sekiya studies · live neural-field study</sub>
 
-<sub>Agent behaviour, review loops, and the evidence trail behind autonomous work.</sub>
+### More public work
 
-</td>
-<td width="33%" valign="top">
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-simulation-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-simulation-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-simulation-light.svg" alt="Simulation &amp; GPU" width="200"></picture>
-
-<sub>Deterministic simulation, GPU compute, and reproducible numerical behaviour.</sub>
-
-</td>
-</tr>
-<tr>
-<td width="33%" valign="top">
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-quantitative-research-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-quantitative-research-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-quantitative-research-light.svg" alt="Quantitative research" width="200"></picture>
-
-<sub>Point-in-time data, validity-first evaluation, and honest null results.</sub>
-
-</td>
-<td width="33%" valign="top">
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-research-infrastructure-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-research-infrastructure-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-research-infrastructure-light.svg" alt="Research infrastructure" width="200"></picture>
-
-<sub>Pre-registration, sealed claims, and evidence gates for computational studies.</sub>
-
-</td>
-<td width="33%" valign="top">
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-systems-security-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-systems-security-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-systems-security-light.svg" alt="Systems &amp; security" width="200"></picture>
-
-<sub>Install-time behaviour, supply-chain tracing, and hardened local tooling.</sub>
-
-</td>
-</tr>
-</table>
-
-### Current systems
-
-<sub>Private projects are described here, not published. Figures are dated snapshots, not live.</sub>
-
-<table width="100%">
-<tr>
-<td width="50%" valign="top">
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg" alt="agentctl, private, v1" width="280"></picture>
-
-Coding-agent work-state inspection: sessions, units, reviews and interrupted runs.
-
-<sub><code>4 review rounds · 22 live acceptance checks · 71 tests</code> · <i>working name</i></sub>
-
-</td>
-<td width="50%" valign="top">
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg" alt="parity, private, v0" width="280"></picture>
-
-Reproducible equivalence testing across heterogeneous compute backends.
-
-<sub><code>2 fixtures · equivalence rungs sealed before backend evidence</code> · <i>working name</i></sub>
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-<a href="https://github.com/joshuadefreitas/trace-npm"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg" alt="trace-npm, public, alpha" width="280"></picture></a>
-
-See what npm lifecycle scripts actually do at runtime: files, processes and network.
-
-<sub><code>Published on npm · strace-based runtime trace</code></sub>
-
-</td>
-<td width="50%" valign="top">
-
-<a href="https://sekiyalab.github.io"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-light.svg" alt="Computational studies, public, research" width="280"></picture></a>
-
-Deterministic, reproducible studies: order-book leakage, point-in-time data, neural fields.
-
-<sub><code>7 public Sekiya studies · live neural-field study</code></sub>
-
-</td>
-</tr>
-</table>
-
-### Selected public work
-
-- [**trace-npm**](https://github.com/joshuadefreitas/trace-npm) — Runtime tracing of npm lifecycle scripts: files touched, processes spawned, network endpoints contacted. <sub>Node.js · Linux</sub>
-- [**neural-field-study**](https://github.com/joshuadefreitas/neural-field-study) — A deterministic computational-neuroscience field study with a live, replayable browser model. <sub>JavaScript</sub>
-- [**deep-lob**](https://github.com/SekiyaLab/deep-lob) — Synthetic limit-order-book study of when overlapping-window splits invent predictability. <sub>Python</sub>
-- [**release-equivalence**](https://github.com/SekiyaLab/release-equivalence) — Release identity, behavioural equivalence, and rollback recovery across model-system boundaries. <sub>Python</sub>
-- [**clock-dataset**](https://github.com/SekiyaLab/clock-dataset) — Point-in-time versus latest-data reconstruction: measuring hindsight bias in historical decisions. <sub>Python</sub>
-- [**time-series-experiments**](https://github.com/joshuadefreitas/time-series-experiments) — Reproducible forecasting experiments across volatility, regimes, structural breaks and chaos. <sub>Python</sub>
+- [**neural-field-study**](https://github.com/joshuadefreitas/neural-field-study) <sub>JavaScript</sub> — A deterministic neural-field model you can replay live in the browser.
+- [**deep-lob**](https://github.com/SekiyaLab/deep-lob) <sub>Python</sub> — A synthetic order-book study of when overlapping windows make a model look smarter than it is.
+- [**release-equivalence**](https://github.com/SekiyaLab/release-equivalence) <sub>Python</sub> — When is a new model release actually the same one? Identity, equivalence, rollback.
+- [**clock-dataset**](https://github.com/SekiyaLab/clock-dataset) <sub>Python</sub> — Point-in-time vs latest data, and how much hindsight sneaks into historical decisions.
+- [**time-series-experiments**](https://github.com/joshuadefreitas/time-series-experiments) <sub>Python</sub> — Forecasting experiments across volatility, regimes, structural breaks and chaos.
 
 ### Tools
 

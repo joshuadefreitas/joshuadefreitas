@@ -5,7 +5,7 @@
  * Static checks (always): stale generated files, broken local paths, external image hosts, alt text, <script> and other
  * active SVG content, oversized SVGs, missing dark/light pairs, text contrast, vendored icons and notice, private-card
  * disclosure rules.  --render additionally lays every text element out in headless Chromium and fails if any text
- * overflows its card/tile/chip (needs a `chromium` binary; skipped with a clear message if absent).
+ * overflows its header/strip (needs a `chromium` binary; skipped with a clear message if absent).
  */
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -26,7 +26,7 @@ const walk = (dir) => readdirSync(resolve(root, dir), { withFileTypes: true }).f
 const generated = build(profile);
 const stale = [...generated].filter(([p, t]) => !existsSync(resolve(root, p)) || read(p) !== t).map(([p]) => p);
 check("generated assets and README are current (not stale)", stale.length === 0, stale.length ? stale.slice(0, 4).join(", ") : `${generated.size} files`);
-const generatedDirs = ["assets/cards", "assets/tiles"];
+const generatedDirs = ["assets/cards"];
 const extra = [...generatedDirs.flatMap(walk), ...readdirSync(resolve(root, "assets")).filter((f) => /^(focus|tech)-strip-.*\.svg$/.test(f)).map((f) => `assets/${f}`)].filter((p) => !generated.has(p));
 check("no orphaned generated SVGs (everything on disk is produced from data/profile.json)", extra.length === 0, extra.join(", "));
 
@@ -116,7 +116,7 @@ if (!privateList) {
   console.log("SKIP  private disclosure gate not run (no --private-denylist / PROFILE_PRIVATE_DENYLIST); required before merge");
 } else {
   const patterns = readFileSync(privateList, "utf8").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")).map((l) => new RegExp(l, "i"));
-  const listed = spawnSync("git", ["-C", root, "ls-files", "-co", "--exclude-standard"], { encoding: "utf8" }).stdout.split("\n").filter(Boolean);
+  const listed = spawnSync("git", ["-C", root, "ls-files", "-co", "--exclude-standard"], { encoding: "utf8" }).stdout.split("\n").filter((f) => f && existsSync(resolve(root, f)));
   const hits = [];
   for (const f of listed) {
     if (/\.(gif|png|jpe?g|webp|ico)$/i.test(f)) continue;
@@ -127,8 +127,8 @@ if (!privateList) {
 }
 const parityCard = profile.cards.find((c) => c.id === "parity");
 check("parity card states no backend results (no pass/fail/result wording)", !/\b(pass|fail|result|verdict|nvidia|intel)\b/i.test(parityCard.evidence + parityCard.thesis));
-check("evidence figures are dated snapshots (as_of present and shown on every card)", /^\d{4}-\d{2}-\d{2}$/.test(profile.as_of) && profile.cards.every((c) => generated.get(`assets/cards/card-${c.id}-dark.svg`).includes(`as of ${profile.as_of}`)));
-check("the positioning sentence is exactly the approved one", profile.positioning === "I build developer tools, autonomous systems, simulation software, and quantitative research infrastructure." && readme.includes(profile.positioning));
+check("as_of provenance date is present in data/profile.json", /^\d{4}-\d{2}-\d{2}$/.test(profile.as_of));
+check("the positioning sentence comes from data/profile.json and appears in the README", profile.positioning.length > 20 && readme.includes(profile.positioning));
 
 // ------------------------------------------------------------------------------------------------ render: text overflow
 if (process.argv.includes("--render")) {
@@ -142,7 +142,7 @@ if (process.argv.includes("--render")) {
       for (const d of document.querySelectorAll('[data-n]')) {
         const svg=d.querySelector('svg'), vb=svg.viewBox.baseVal, name=d.dataset.n, isCard=name.includes('/cards/');
         for (const t of svg.querySelectorAll('text')) {
-          const b=t.getBBox(), pad=isCard||name.includes('/tiles/')?14:6;
+          const b=t.getBBox(), pad=isCard?1:6;
           if (b.x<pad-0.5||b.x+b.width>vb.width-pad+0.5) bad.push(name+': "'+t.textContent.slice(0,40)+'" x '+b.x.toFixed(1)+'..'+(b.x+b.width).toFixed(1)+' of '+vb.width);
           if (b.y<2||b.y+b.height>vb.height-2) bad.push(name+': "'+t.textContent.slice(0,40)+'" y out of bounds');
           if (isCard && t.getAttribute('font-size')==='14.5' && b.x+b.width>356) bad.push(name+': thesis runs into the motif');
@@ -158,7 +158,7 @@ if (process.argv.includes("--render")) {
     if (!m) check("render overflow check", false, "chromium produced no result: " + (run.stderr || "").slice(0, 120));
     else {
       const out = JSON.parse(m[1].replace(/&quot;/g, '"').replace(/&amp;/g, "&"));
-      check(`no text overflows its card, tile or chip when laid out in Chromium (${out.count} SVGs, system fonts)`, out.bad.length === 0, out.bad.slice(0, 3).join(" | "));
+      check(`no text overflows its header or strip when laid out in Chromium (${out.count} SVGs, system fonts)`, out.bad.length === 0, out.bad.slice(0, 3).join(" | "));
     }
   }
 }

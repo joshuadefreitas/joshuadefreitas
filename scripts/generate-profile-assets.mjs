@@ -97,29 +97,6 @@ function motif(id, box, p, accent) {
   return out + `</g>`;
 }
 
-// ------------------------------------------------------------------------------------------------ glyphs (44x44 box)
-function glyph(kind, p) {
-  const e = p.edge, n = p.panel2, g = p.muted, b = p.blue, c = p.copper;
-  const node = (x, y, r, col = g) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${n}" stroke="${col}" stroke-width="1.6"/>`;
-  const line = (d, col = e) => `<path d="${d}" stroke="${col}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-  switch (kind) {
-    case "terminal": return line("M6 12 L22 22 L6 32") + line("M26 34 H40") + node(34, 12, 4, b) + line("M30 15 L24 20", e);
-    case "loop": return line("M22 6 A16 16 0 0 1 38 22") + line("M38 22 A16 16 0 0 1 22 38") + line("M22 38 A16 16 0 0 1 6 22") + line("M6 22 A16 16 0 0 1 22 6") +
-      node(22, 6, 4) + node(38, 22, 4, b) + node(22, 38, 4) + node(6, 22, 4) + node(22, 22, 3, c);
-    case "lattice": {
-      let s = "";
-      for (let i = 0; i < 3; i++) { s += line(`M8 ${10 + i * 12} H36`) + line(`M${10 + i * 12} 8 V36`); }
-      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s += node(10 + i * 12, 10 + j * 12, i === 1 && j === 1 ? 4 : 3, i === 1 && j === 1 ? b : g);
-      return s;
-    }
-    case "series": return line("M4 38 H40") + line("M6 30 L14 22 L22 26 L30 12 L38 16", g) + node(6, 30, 3) + node(14, 22, 3) + node(22, 26, 3) + node(30, 12, 4, b) + node(38, 16, 3);
-    case "layers": return line("M8 12 H36") + line("M8 22 H36") + line("M8 32 H36") + line("M22 12 V32", e) + node(22, 12, 4) + node(22, 22, 4, b) + node(22, 32, 4);
-    case "boundary": return `<rect x="6" y="8" width="32" height="28" rx="3" fill="none" stroke="${e}" stroke-width="1.6" stroke-dasharray="3 3"/>` +
-      line("M2 22 H15") + line("M29 22 H42") + node(22, 22, 6, c) + node(22, 22, 2, c);
-    default: throw new Error("unknown glyph " + kind);
-  }
-}
-
 // ------------------------------------------------------------------------------------------------ svg shells
 function svg(width, height, title, body, extraDefs = "") {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}">` +
@@ -159,11 +136,11 @@ function flow(items, innerWidth, gap, rowHeight) {
 function focusStrip(profile, theme) {
   const p = profile.palette[theme], f = F(profile);
   const items = profile.focus.map((label) => ({ label, text: label.toUpperCase(), w: Math.ceil(monoWidth(label.toUpperCase(), 11, 0.8)) + 20 }));
-  const rows = flow(items, STRIP_W - 2 * STRIP_PAD, 18, 26);
-  const h = STRIP_PAD * 2 - 4 + rows.length * 26;
-  let body = `<rect x=".5" y=".5" width="${STRIP_W - 1}" height="${h - 1}" rx="10" fill="${p.panel}" stroke="${p.border}"/>`;
+  const rows = flow(items, STRIP_W - 4, 18, 26);
+  const h = STRIP_PAD - 4 + rows.length * 26;
+  let body = "";
   for (const it of rows.flat()) {
-    const x = STRIP_PAD + it.x, y = STRIP_PAD + it.y;
+    const x = 2 + it.x, y = 2 + it.y;
     body += `<circle cx="${x + 4}" cy="${y + 10}" r="3.2" fill="${p.panel2}" stroke="${p.blue}" stroke-width="1.3"/>` +
       `<text x="${x + 16}" y="${y + 14}" font-family="${f.mono}" font-size="11" letter-spacing=".8" fill="${p.muted}">${esc(it.text)}</text>`;
   }
@@ -173,41 +150,31 @@ function focusStrip(profile, theme) {
 function techStrip(profile, theme) {
   const p = profile.palette[theme], f = F(profile);
   const items = profile.tech.map((t) => ({ ...t, w: Math.ceil(sansWidth(t.label, 12.5) + 38) }));
-  const rows = flow(items, STRIP_W - 2 * STRIP_PAD, 10, 34);
-  const h = STRIP_PAD * 2 - 6 + rows.length * 34;
-  let body = `<rect x=".5" y=".5" width="${STRIP_W - 1}" height="${h - 1}" rx="10" fill="${p.panel}" stroke="${p.border}"/>`;
+  const rows = flow(items, STRIP_W - 4, 10, 34);
+  const h = STRIP_PAD - 6 + rows.length * 34;
+  let body = "";
   for (const it of rows.flat()) {
-    const x = STRIP_PAD + it.x, y = STRIP_PAD + it.y;
+    const x = 2 + it.x, y = 2 + it.y;
     body += `<g transform="translate(${x} ${y + 4}) scale(${num(16 / 24)})"><path d="${iconPath(it.slug)}" fill="${p.muted}"/></g>` +
       `<text x="${x + 24}" y="${y + 17}" font-family="${f.sans}" font-size="12.5" fill="${p.text}">${esc(it.label)}</text>`;
   }
   return { w: STRIP_W, h, svg: svg(STRIP_W, h, `Tools: ${profile.tech.map((t) => t.label).join(", ")}`, body) };
 }
 
-const TILE = { w: 200, h: 100 };
-function tile(item, theme, profile) {
-  const p = profile.palette[theme], f = F(profile);
-  const lines = wrap(item.title, TILE.w - 60, 15, 2);
-  let body = `<rect x=".5" y=".5" width="${TILE.w - 1}" height="${TILE.h - 1}" rx="10" fill="${p.panel}" stroke="${p.border}"/>` +
-    `<g transform="translate(14 12) scale(.82)">${glyph(item.glyph, p)}</g>`;
-  lines.forEach((l, i) => { body += `<text x="14" y="${lines.length === 1 ? 74 : 66 + i * 18}" font-family="${f.sans}" font-size="15" font-weight="650" fill="${p.text}">${esc(l)}</text>`; });
-  return svg(TILE.w, TILE.h, item.title, body);
-}
-
-const CARD = { w: 280, h: 112 };
+// Project header: an accent strip (hairline, pills, tech, topology motif, name), not a container. Description and evidence are real text below it.
+const CARD = { w: 480, h: 92 };
 function card(item, theme, profile) {
   const p = profile.palette[theme], f = F(profile);
   const accent = item.visibility === "PRIVATE" ? p.copper : p.blue;
-  let body = `<rect x=".5" y=".5" width="${CARD.w - 1}" height="${CARD.h - 1}" rx="12" fill="${p.panel}" stroke="${p.border}"/>` +
-    motif(item.id, { x: 196, y: 8, w: 70, h: 44 }, p, accent);
-  const a = pill(16, 14, item.visibility, accent, f), b = pill(16 + a.w + 8, 14, item.maturity, p.muted, f);
-  body += a.svg + b.svg;
-  body += `<text x="16" y="70" font-family="${f.sans}" font-size="19" font-weight="650" fill="${p.text}">${esc(item.title)}</text>`;
-  body += `<g transform="translate(16 ${CARD.h - 24}) scale(${num(13 / 24)})"><path d="${iconPath(item.tech.icon)}" fill="${p.muted}"/></g>` +
-    `<text x="34" y="${CARD.h - 13}" font-family="${f.mono}" font-size="10.5" fill="${p.muted}">${esc(item.tech.label)}</text>` +
-    `<text x="${CARD.w - 16}" y="${CARD.h - 13}" text-anchor="end" font-family="${f.mono}" font-size="9.5" fill="${p.faint}">as of ${esc(profile.as_of)}</text>`;
-  if (sansWidth(item.title, 19) > CARD.w - 32) throw new Error("card title too wide: " + item.title);
-  return svg(CARD.w, CARD.h, `${item.title}, ${item.visibility.toLowerCase()}, ${item.maturity.toLowerCase()}, as of ${profile.as_of}`, body);
+  let body = `<path d="M0 .5 H${CARD.w}" stroke="${p.border}" stroke-width="1"/>` + motif(item.id, { x: 372, y: 10, w: 104, h: 72 }, p, accent);
+  const a = pill(1, 18, item.visibility, accent, f), b = pill(1 + a.w + 8, 18, item.maturity, p.muted, f);
+  const tx = 1 + a.w + 8 + b.w + 16;
+  body += a.svg + b.svg +
+    `<g transform="translate(${num(tx)} 21) scale(${num(14 / 24)})"><path d="${iconPath(item.tech.icon)}" fill="${p.muted}"/></g>` +
+    `<text x="${num(tx + 20)}" y="33" font-family="${f.mono}" font-size="11.5" fill="${p.muted}">${esc(item.tech.label)}</text>`;
+  body += `<text x="1" y="74" font-family="${f.sans}" font-size="26" font-weight="650" fill="${p.text}">${esc(item.title)}</text>`;
+  if (sansWidth(item.title, 26) > 300) throw new Error("project title too wide: " + item.title);
+  return svg(CARD.w, CARD.h, `${item.title}, ${item.visibility.toLowerCase()}, ${item.maturity.toLowerCase()}, ${item.tech.label}`, body);
 }
 
 // ------------------------------------------------------------------------------------------------ README
@@ -217,13 +184,6 @@ function picture(profile, kind, stem, alt, width, height) {
   return `<picture><source media="(prefers-color-scheme: dark)" srcset="${base}/${stem}-dark.svg"><source media="(prefers-color-scheme: light)" srcset="${base}/${stem}-light.svg"><img src="${base}/${stem}-light.svg" alt="${esc(alt)}"${dims}></picture>`;
 }
 const slug = (s) => s.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-function grid(cells, cols) {
-  const pct = Math.floor(100 / cols);
-  const rows = [];
-  for (let i = 0; i < cells.length; i += cols) rows.push(cells.slice(i, i + cols));
-  return `<table width="100%">\n` + rows.map((r) => `<tr>\n` + r.map((c) => `<td width="${pct}%" valign="top">\n\n${c}\n\n</td>`).join("\n") + `\n</tr>`).join("\n") + `\n</table>`;
-}
 
 function readme(profile) {
   const hero = (name, ext) => `https://raw.githubusercontent.com/${profile.repo}/main/assets/${name}.${ext}`;
@@ -237,17 +197,14 @@ function readme(profile) {
   out.push(`# ${profile.name}\n`);
   out.push(`${profile.positioning}\n`);
   out.push(picture(profile, "", "focus-strip", `Focus: ${profile.focus.join(", ")}`, STRIP_W) + "\n");
-  out.push(`### What I build\n`);
-  out.push(grid(profile.tiles.map((t) => `${picture(profile, "tiles", `tile-${t.id}`, t.title, TILE.w)}\n\n<sub>${esc(t.text)}</sub>`), 3) + "\n");
-  out.push(`### Current systems\n`);
-  out.push(`<sub>${esc(profile.private_note)}</sub>\n`);
-  out.push(grid(profile.cards.map((c) => {
-    const pic = picture(profile, "cards", `card-${c.id}`, `${c.title}, ${c.visibility.toLowerCase()}, ${c.maturity.toLowerCase()}`, CARD.w);
-    const head = c.href ? `<a href="${c.href}">${pic}</a>` : pic;
-    return `${head}\n\n${esc(c.thesis)}\n\n<sub><code>${esc(c.evidence)}</code>${c.aside ? ` · <i>${esc(c.aside)}</i>` : ""}</sub>`;
-  }), 2) + "\n");
-  out.push(`### Selected public work\n`);
-  out.push(profile.public_work.map((w) => `- [**${w.name}**](${w.url}) — ${w.text} <sub>${w.stack}</sub>`).join("\n") + "\n");
+  out.push(`### Current work\n`);
+  out.push(`${esc(profile.private_note)}\n`);
+  for (const c of profile.cards) {
+    const pic = picture(profile, "cards", `card-${c.id}`, `${c.title}, ${c.visibility.toLowerCase()}, ${c.maturity.toLowerCase()}, ${c.tech.label}`, CARD.w);
+    out.push(`${c.href ? `<a href="${c.href}">${pic}</a>` : pic}<br>\n${esc(c.thesis)}<br>\n<sub>${esc(c.evidence)}</sub>\n`);
+  }
+  out.push(`### More public work\n`);
+  out.push(profile.public_work.map((w) => `- [**${w.name}**](${w.url}) <sub>${w.stack}</sub> — ${w.text}`).join("\n") + "\n");
   out.push(`### Tools\n`);
   out.push(picture(profile, "", "tech-strip", `Tools: ${profile.tech.map((t) => t.label).join(", ")}`, STRIP_W) + "\n");
   out.push(profile.links.map((l) => `[${l.label}](${l.url})`).join(" · ") + "\n");
@@ -260,7 +217,6 @@ export function build(profile) {
   for (const theme of THEMES) {
     files.set(`assets/focus-strip-${theme}.svg`, focusStrip(profile, theme).svg);
     files.set(`assets/tech-strip-${theme}.svg`, techStrip(profile, theme).svg);
-    for (const t of profile.tiles) files.set(`assets/tiles/tile-${t.id}-${theme}.svg`, tile(t, theme, profile));
     for (const c of profile.cards) files.set(`assets/cards/card-${c.id}-${theme}.svg`, card(c, theme, profile));
   }
   files.set("README.md", readme(profile));
