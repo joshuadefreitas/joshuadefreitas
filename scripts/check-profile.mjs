@@ -66,7 +66,9 @@ let heroReferenceOk = true;
 let heroReferenceDetail = "";
 try {
   const heroFiles = ["assets/hero-dark.svg", "assets/hero-light.svg"];
-  const entries = read("assets/hero.sha256").split("\n").filter(Boolean).map((line) => {
+  const heroManifest = read("assets/hero.sha256");
+  if (!heroManifest.endsWith("\n") || heroManifest.endsWith("\n\n")) throw new Error("reference must contain exactly two nonblank lines followed by one newline");
+  const entries = heroManifest.slice(0, -1).split("\n").map((line) => {
     const match = line.match(/^([a-f0-9]{64})  (assets\/hero-(?:dark|light)\.svg)$/);
     if (!match) throw new Error("invalid entry");
     return [match[2], match[1]];

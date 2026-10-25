@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { closeSync, cpSync, fsyncSync, mkdtempSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { closeSync, cpSync, fsyncSync, mkdtempSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
@@ -18,14 +18,9 @@ const digest = (text) => createHash("sha256").update(text, "utf8").digest("hex")
 function goldenText(hashes) {
   return heroFiles.map((file) => `${hashes.get(file)}  ${file}`).join("\n") + "\n";
 }
-function readGolden() {
-  let text;
-  try {
-    text = readFileSync(goldenPath, "utf8");
-  } catch {
-    throw new Error("hero reference file is missing");
-  }
-  const lines = text.split("\n").filter(Boolean);
+function parseGolden(text) {
+  if (!text.endsWith("\n") || text.endsWith("\n\n")) throw new Error("hero reference file must contain exactly two nonblank lines followed by one newline");
+  const lines = text.slice(0, -1).split("\n");
   if (lines.length !== heroFiles.length) throw new Error("hero reference file must contain exactly two hashes");
   const hashes = new Map();
   for (const line of lines) {
@@ -35,6 +30,14 @@ function readGolden() {
   }
   if (hashes.size !== heroFiles.length) throw new Error("hero reference file is incomplete");
   return hashes;
+}
+function readGolden() {
+  try {
+    return parseGolden(readFileSync(goldenPath, "utf8"));
+  } catch (error) {
+    if (error.code === "ENOENT") throw new Error("hero reference file is missing");
+    throw error;
+  }
 }
 function generatedHashes(dark, light) {
   return new Map([[heroFiles[0], digest(dark)], [heroFiles[1], digest(light)]]);
@@ -56,8 +59,85 @@ function writeAtomically(path, text) {
     const directory = openSync(dirname(path), "r");
     try { fsyncSync(directory); } finally { closeSync(directory); }
   } catch (error) {
-    if (descriptor !== undefined) closeSync(descriptor);
+    try {
+      if (descriptor !== undefined) closeSync(descriptor);
+    } finally {
+      rmSync(temporary, { force: true });
+    }
     throw error;
+  }
+}
+
+function temporaryPath(path, index) {
+  return join(dirname(path), `.${basename(path)}.${process.pid}.${Date.now()}.${index}.tmp`);
+}
+function syncDirectory(path) {
+  const directory = openSync(dirname(path), "r");
+  try { fsyncSync(directory); } finally { closeSync(directory); }
+}
+function faultAt(point, file) {
+  const fault = process.env.HERO_TEST_FAULT;
+  if ((fault === "manifest-write-failure" && point === "write" && file.name === "manifest") ||
+      (fault === "second-rename-failure" && point === "rename" && file.name === "light") ||
+      (fault === "temp-reread-failure" && point === "reread" && file.name === "dark")) {
+    throw new Error(`injected ${fault}`);
+  }
+}
+function writeTemporary(file, index) {
+  const temporary = temporaryPath(file.path, index);
+  let descriptor;
+  try {
+    faultAt("write", file);
+    descriptor = openSync(temporary, "wx", 0o600);
+    writeFileSync(descriptor, file.text, "utf8");
+    fsyncSync(descriptor);
+    closeSync(descriptor);
+    descriptor = undefined;
+    return temporary;
+  } catch (error) {
+    try {
+      if (descriptor !== undefined) closeSync(descriptor);
+    } finally {
+      rmSync(temporary, { force: true });
+    }
+    throw error;
+  }
+}
+function publish(files, validate) {
+  const originals = new Map(files.map((file) => [file.path, readFileSync(file.path, "utf8")]));
+  const temporaries = new Map();
+  const replaced = [];
+  try {
+    files.forEach((file, index) => temporaries.set(file.path, writeTemporary(file, index)));
+    const staged = new Map(files.map((file) => {
+      faultAt("reread", file);
+      const text = readFileSync(temporaries.get(file.path), "utf8");
+      if (text !== file.text) throw new Error(`temporary output differs after write: ${file.name}`);
+      return [file.path, text];
+    }));
+    validate(staged);
+    for (const file of files) {
+      faultAt("rename", file);
+      renameSync(temporaries.get(file.path), file.path);
+      temporaries.delete(file.path);
+      replaced.push(file);
+      syncDirectory(file.path);
+    }
+    const published = new Map(files.map((file) => [file.path, readFileSync(file.path, "utf8")]));
+    validate(published);
+  } catch (error) {
+    const rollbackErrors = [];
+    for (const file of replaced.reverse()) {
+      try {
+        writeAtomically(file.path, originals.get(file.path));
+      } catch (rollbackError) {
+        rollbackErrors.push(`${file.name}: ${rollbackError.message}`);
+      }
+    }
+    if (rollbackErrors.length) throw new Error(`${error.message}; rollback failed: ${rollbackErrors.join(", ")}`);
+    throw error;
+  } finally {
+    for (const temporary of temporaries.values()) rmSync(temporary, { force: true });
   }
 }
 
@@ -963,8 +1043,21 @@ function runCommand(command, args, options = {}) {
   if (result.status !== 0) throw new Error(`${command} failed: ${(result.stderr || result.stdout || "").trim()}`);
   return result.stdout;
 }
-function fileHashes(directory) {
-  return heroFiles.map((file) => digest(readFileSync(resolve(directory, file), "utf8"))).join(" ");
+function assetHashes(directory) {
+  const assetRoot = resolve(directory, "assets");
+  const paths = [];
+  function visit(path) {
+    for (const entry of readdirSync(path, { withFileTypes: true })) {
+      const child = join(path, entry.name);
+      if (entry.isDirectory()) visit(child);
+      else paths.push(child);
+    }
+  }
+  visit(assetRoot);
+  return paths.sort().map((path) => `${path.slice(assetRoot.length)}:${digest(readFileSync(path, "utf8"))}`).join(" ");
+}
+function temporaryAssets(directory) {
+  return readdirSync(resolve(directory, "assets")).filter((name) => name.endsWith(".tmp"));
 }
 function assertNoWriteOnFailure() {
   const temporary = mkdtempSync(join(tmpdir(), "hero-write-check-"));
@@ -974,20 +1067,34 @@ function assertNoWriteOnFailure() {
     runCommand("git", ["init", "--quiet", copy]);
     runCommand("git", ["-C", copy, "add", "-A"]);
     runCommand("git", ["-C", copy, "-c", "user.name=check", "-c", "user.email=check@example.invalid", "commit", "--quiet", "-m", "hero check baseline"]);
-    const cases = [...Object.keys(injectedChanges).map((name) => [name, []]), ["update-golden-refuses-invalid", ["--update-golden"]]];
+    const fixtureGolden = readFileSync(resolve(copy, "assets/hero.sha256"), "utf8");
+    const cases = [
+      ...Object.keys(injectedChanges).map((name) => ({ name, args: [], change: name })),
+      { name: "update-golden-refuses-invalid", args: ["--update-golden"], change: "duration-changed" },
+      { name: "second-rename-failure", args: [], fault: "second-rename-failure" },
+      { name: "manifest-write-failure", args: ["--update-golden"], fault: "manifest-write-failure" },
+      { name: "temp-reread-failure", args: [], fault: "temp-reread-failure" },
+      { name: "manifest-leading-blank-line", args: [], prepare: () => writeFileSync(resolve(copy, "assets/hero.sha256"), `\n${fixtureGolden}`) },
+      { name: "manifest-extra-blank-line", args: [], prepare: () => writeFileSync(resolve(copy, "assets/hero.sha256"), fixtureGolden.replace("\n", "\n\n")) },
+    ];
     const rows = [];
-    for (const [name, args] of cases) {
-      const change = name === "update-golden-refuses-invalid" ? "duration-changed" : name;
-      const before = fileHashes(copy);
-      const result = spawnSync(process.execPath, [resolve(copy, "scripts/generate-hero.mjs"), ...args], {
+    for (const test of cases) {
+      test.prepare?.();
+      if (test.prepare) {
+        runCommand("git", ["-C", copy, "add", "assets/hero.sha256"]);
+        runCommand("git", ["-C", copy, "-c", "user.name=check", "-c", "user.email=check@example.invalid", "commit", "--quiet", "-m", `hero fixture ${test.name}`]);
+      }
+      const before = assetHashes(copy);
+      const result = spawnSync(process.execPath, [resolve(copy, "scripts/generate-hero.mjs"), ...test.args], {
         cwd: copy,
         encoding: "utf8",
-        env: { ...process.env, HERO_SKIP_SELF_TESTS: "1", HERO_TEST_CHANGE: change },
+        env: { ...process.env, HERO_SKIP_SELF_TESTS: "1", HERO_TEST_CHANGE: test.change, HERO_TEST_FAULT: test.fault },
       });
-      const after = fileHashes(copy);
+      const after = assetHashes(copy);
       const status = runCommand("git", ["-C", copy, "status", "--porcelain"]);
-      if (result.status === 0 || before !== after || status) throw new Error(`write safety check failed: ${name}`);
-      rows.push(`| ${name} | CAUGHT | unchanged |`);
+      const leftovers = temporaryAssets(copy);
+      if (result.status === 0 || before !== after || status || leftovers.length) throw new Error(`write safety check failed: ${test.name}`);
+      rows.push(`| ${test.name} | CAUGHT | unchanged |`);
     }
     console.log(`Hero write safety self-test PASS (temporary repository clean):\n| Change | Result | Files |\n| --- | --- | --- |\n${rows.join("\n")}`);
   } finally {
@@ -1006,13 +1113,15 @@ const expected = options.has("--update-golden") ? generatedHashes(darkSvg, light
 assertSerializedDark(darkSvg, lightSvg, expected);
 validatePair(darkSvg, lightSvg, expected);
 
-writeAtomically(darkPath, darkSvg);
-writeAtomically(lightPath, lightSvg);
-const writtenDark = readFileSync(darkPath, "utf8");
-const writtenLight = readFileSync(lightPath, "utf8");
-validatePair(writtenDark, writtenLight, expected);
-if (options.has("--update-golden")) {
-  writeAtomically(goldenPath, goldenText(expected));
-  assertGolden(writtenDark, writtenLight, readGolden());
-}
+const publication = [
+  { name: "dark", path: darkPath, text: darkSvg },
+  { name: "light", path: lightPath, text: lightSvg },
+];
+if (options.has("--update-golden")) publication.push({ name: "manifest", path: goldenPath, text: goldenText(expected) });
+publish(publication, (written) => {
+  const writtenDark = written.get(darkPath);
+  const writtenLight = written.get(lightPath);
+  validatePair(writtenDark, writtenLight, expected);
+  if (options.has("--update-golden")) assertGolden(writtenDark, writtenLight, parseGolden(written.get(goldenPath)));
+});
 if (options.has("--self-check")) assertNoWriteOnFailure();
