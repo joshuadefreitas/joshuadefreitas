@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,6 +24,13 @@ const phase = Object.freeze({
   returnStart: 16,
 });
 const POP_BOUND = .03;
+// Source times are rounded to 10 decimal seconds, then key() truncates their
+// normalized form to 12 decimals. Together they move an emitted instant by
+// less than 8e-11 s; 1e-10 s is the conservative bound used below. Boundary
+// probes use 1e-6 s, safely beyond that serialization quantization.
+const SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS = 1e-10;
+const SERIALIZED_BOUNDARY_PROBE_SECONDS = 1e-6;
+const SERIALIZED_NUMERIC_TOLERANCE = 1e-8;
 const keyNumber = (time) => time === phase.loop ? 1 : Math.floor((time / phase.loop) * 1e12) / 1e12;
 const key = (time) => String(keyNumber(time));
 const rail = { left: 62, right: 1378, top: 84, bottom: 216, rest: 900 };
@@ -100,6 +107,14 @@ function cutoffAt(time) {
 }
 function stateForTime(item, time) {
   return stateAt(item, cutoffAt(time));
+}
+// The emission model keeps a small floating-point guard above. The serialized
+// check uses the mathematical cutoff instead, so its +/- 1e-6 s probes test
+// the old and new discrete states on either side of every emitted key time.
+function pureStatusForTime(item, time) {
+  const cutoff = cutoffAt(time);
+  if (cutoff < item.x) return "ghost";
+  return cutoff < item.available ? "flight" : "resolved";
 }
 function stateFrames(item, which) {
   const times = timesFor(item);
@@ -335,7 +350,353 @@ function assertStateModel(tracks) {
   console.log("Hero negative checks passed: altered state, invisible-cutoff hold, and stuck resting wash rejected.");
 }
 
-const darkTracks = [];
-writeFileSync(resolve(assets, "hero-dark.svg"), hero("dark", darkTracks));
-assertStateModel(darkTracks);
-writeFileSync(resolve(assets, "hero-light.svg"), hero("light"));
+function parseSerializedSvg(svg) {
+  const root = { name: "#document", attrs: {}, children: [], parent: null };
+  const stack = [root];
+  const ids = new Map();
+  const nodes = [];
+  const tokens = svg.match(/<!--[\s\S]*?-->|<[^>]+>/g) || [];
+  for (const token of tokens) {
+    if (token.startsWith("<?") || token.startsWith("<!--")) continue;
+    if (token.startsWith("</")) {
+      const name = token.slice(2, -1).trim();
+      if (stack.length === 1 || stack.at(-1).name !== name) throw new Error(`serialized SVG has an unbalanced </${name}>`);
+      stack.pop();
+      continue;
+    }
+    const match = token.match(/^<([\w:-]+)\b([\s\S]*?)(\/?)>$/);
+    if (!match) throw new Error(`serialized SVG has an unreadable token: ${token}`);
+    const [, name, sourceAttrs, slash] = match;
+    const attrs = {};
+    const attrPattern = /([\w:-]+)\s*=\s*(["'])(.*?)\2/g;
+    let attr;
+    while ((attr = attrPattern.exec(sourceAttrs))) {
+      if (Object.hasOwn(attrs, attr[1])) throw new Error(`serialized SVG repeats ${attr[1]} on <${name}>`);
+      attrs[attr[1]] = attr[3];
+    }
+    const leftovers = sourceAttrs.replace(attrPattern, "").replace(/\//g, "").trim();
+    if (leftovers) throw new Error(`serialized SVG has unreadable attributes on <${name}>`);
+    const node = { name, attrs, children: [], parent: stack.at(-1) };
+    node.parent.children.push(node);
+    nodes.push(node);
+    if (attrs.id) {
+      if (ids.has(attrs.id)) throw new Error(`serialized SVG duplicates id=${attrs.id}`);
+      ids.set(attrs.id, node);
+    }
+    if (!slash) stack.push(node);
+  }
+  if (stack.length !== 1) throw new Error(`serialized SVG leaves <${stack.at(-1).name}> open`);
+  return { root, nodes, ids };
+}
+function directChildren(node, name) {
+  return node.children.filter((child) => child.name === name);
+}
+function hasDirectUse(node, href) {
+  return directChildren(node, "use").some((child) => child.attrs.href === href);
+}
+function animationNumbers(value, transform = false) {
+  const parts = value.split(";");
+  return parts.map((part) => {
+    const fields = part.trim().split(/\s+/);
+    if (transform && (fields.length !== 2 || fields[1] !== "0")) throw new Error(`invalid serialized translate value ${part}`);
+    const number = Number(fields[0]);
+    if (!Number.isFinite(number)) throw new Error(`invalid serialized animation value ${part}`);
+    return number;
+  });
+}
+function parseSerializedAnimation(node) {
+  const { attrs } = node;
+  if (!attrs.attributeName) throw new Error(`serialized <${node.name}> lacks attributeName`);
+  if (attrs.dur !== `${phase.loop}s`) throw new Error(`serialized ${attrs.attributeName} duration is not ${phase.loop}s`);
+  if (attrs.repeatCount !== "indefinite") throw new Error(`serialized ${attrs.attributeName} does not repeat indefinitely`);
+  if (Object.hasOwn(attrs, "begin")) throw new Error(`serialized ${attrs.attributeName} must not have begin`);
+  if (!attrs.values || !attrs.keyTimes) throw new Error(`serialized ${attrs.attributeName} lacks values or keyTimes`);
+  const keyTimes = attrs.keyTimes.split(";").map(Number);
+  if (keyTimes.some((time) => !Number.isFinite(time))) throw new Error(`serialized ${attrs.attributeName} has invalid keyTimes`);
+  if (keyTimes.length !== attrs.values.split(";").length) throw new Error(`serialized ${attrs.attributeName} values/keyTimes length mismatch`);
+  if (keyTimes.length < 2 || keyTimes[0] !== 0 || keyTimes.at(-1) !== 1) throw new Error(`serialized ${attrs.attributeName} keyTimes must span 0 to 1`);
+  for (let i = 1; i < keyTimes.length; i += 1) {
+    if (keyTimes[i] < keyTimes[i - 1] || keyTimes[i] > 1 || keyTimes[i] < 0) throw new Error(`serialized ${attrs.attributeName} keyTimes are not monotonic in [0, 1]`);
+  }
+  const mode = attrs.calcMode || "linear";
+  if (!["linear", "discrete", "spline"].includes(mode)) throw new Error(`serialized ${attrs.attributeName} has unsupported calcMode=${mode}`);
+  let splines;
+  if (mode === "spline") {
+    if (!attrs.keySplines) throw new Error(`serialized spline ${attrs.attributeName} lacks keySplines`);
+    splines = attrs.keySplines.split(";");
+    if (splines.length !== keyTimes.length - 1 || splines.some((spline) => spline.split(" ").length !== 4 || spline.split(" ").some((part) => !Number.isFinite(Number(part))))) {
+      throw new Error(`serialized spline ${attrs.attributeName} has invalid keySplines`);
+    }
+  } else if (Object.hasOwn(attrs, "keySplines")) {
+    throw new Error(`serialized non-spline ${attrs.attributeName} has keySplines`);
+  }
+  const transform = node.name === "animateTransform";
+  if (transform && attrs.type !== "translate") throw new Error("serialized animateTransform is not a translate");
+  return { node, parent: node.parent, attributeName: attrs.attributeName, mode, splines, keyTimes, values: animationNumbers(attrs.values, transform) };
+}
+function assertSerializedAttribute(track, attributeName, mode) {
+  if (track.attributeName !== attributeName) throw new Error(`serialized ${track.node.name} targets ${track.attributeName}, not ${attributeName}`);
+  if (track.mode !== mode) throw new Error(`serialized ${attributeName} has calcMode=${track.mode}, not ${mode}`);
+}
+function stateTarget(track) {
+  const parent = track.parent;
+  if (parent.name !== "g") return null;
+  const line = directChildren(parent, "use").find((child) => /^#(?:e|r)\d+-line$/.test(child.attrs.href || ""));
+  if (!line || !hasDirectUse(parent, line.attrs.href.replace("-line", "-marks"))) return null;
+  const id = line.attrs.href.slice(1, -5);
+  const item = records.find((record) => record.id === id);
+  if (!item) throw new Error(`serialized state target has unknown record ${id}`);
+  const which = line.attrs.stroke === palettes.dark.edge && line.attrs["stroke-opacity"] === palettes.dark.ghostLine ? "ghost"
+    : line.attrs.stroke === palettes.dark.node && line.attrs["stroke-dasharray"] === "5 4" ? "flight"
+      : line.attrs.stroke === (item.revision ? palettes.dark.ember : palettes.dark.blue) ? "resolved" : null;
+  if (!which) throw new Error(`serialized state target ${id} has an unintended group style`);
+  return { item, which };
+}
+function flareTarget(parent) {
+  const circles = directChildren(parent, "circle");
+  if (parent.name !== "g" || parent.attrs.opacity !== "0" || circles.length !== 2) return null;
+  const item = records.find((record) => record.revision && circles.every((circle) => circle.attrs.cx === String(record.available) && circle.attrs.cy === String(rail.bottom)));
+  if (!item) throw new Error("serialized flare has an unintended parent target");
+  return item;
+}
+function isWashMaster(parent) {
+  return parent.name === "g" && parent.attrs.opacity === "1" && parent.parent?.name === "g" && parent.parent.attrs.opacity === String(WASH_OPACITY)
+    && directChildren(parent, "g").length === 2;
+}
+function washSection(parent) {
+  if (parent.name !== "g" || !isWashMaster(parent.parent)) return null;
+  const rect = directChildren(parent, "rect")[0];
+  if (!rect || rect.attrs.x !== String(rail.left) || rect.attrs.y !== "41" || rect.attrs.height !== "218" || rect.attrs.fill !== palettes.dark.blue) return null;
+  if (parent.attrs.opacity === "1" && rect.attrs.width === String(rail.rest - rail.left)) return "forward";
+  if (parent.attrs.opacity === "0" && rect.attrs.width === "0") return "returning";
+  return null;
+}
+function cutoffTarget(track) {
+  const parent = track.parent;
+  if (parent.name !== "g") return null;
+  if (parent.attrs.transform === `translate(${rail.rest} 0)`) return "outer";
+  if (parent.attrs.transform !== "translate(0 0)") return null;
+  if (parent.parent?.attrs.transform === `translate(${rail.rest} 0)`) return "reset";
+  if (parent.parent?.attrs.transform === "translate(0 0)" && parent.parent.parent?.attrs.transform === `translate(${rail.rest} 0)` && parent.attrs.opacity === "1") return "returning";
+  return null;
+}
+function classifySerializedTracks(parsed) {
+  const animationNodes = parsed.nodes.filter((node) => ["animate", "animateTransform", "set"].includes(node.name));
+  if (animationNodes.some((node) => node.name === "set")) throw new Error("serialized dark SVG must not contain <set>");
+  if (animationNodes.length !== 171) throw new Error(`serialized dark SVG has ${animationNodes.length} animation elements, not 171`);
+  const result = { states: [], flares: [], widths: {}, washOpacity: {}, cutoff: {}, masters: {}, labels: null, all: [] };
+  for (const node of animationNodes) {
+    const track = parseSerializedAnimation(node);
+    result.all.push(track);
+    if (node.name === "animateTransform") {
+      const name = cutoffTarget(track);
+      if (!name || result.cutoff[name]) throw new Error("serialized cutoff translate has an unintended direct parent");
+      assertSerializedAttribute(track, "transform", name === "reset" ? "discrete" : "linear");
+      result.cutoff[name] = track;
+      continue;
+    }
+    if (node.name !== "animate") throw new Error(`unexpected serialized animation element <${node.name}>`);
+    if (track.attributeName === "width") {
+      const rect = track.parent;
+      const section = washSection(rect.parent);
+      if (rect.name !== "rect" || !section || result.widths[section]) throw new Error("serialized wash width animation is not a direct child of its intended rect");
+      assertSerializedAttribute(track, "width", "linear");
+      result.widths[section] = track;
+      continue;
+    }
+    if (track.attributeName !== "opacity") throw new Error(`serialized animate has unintended attributeName=${track.attributeName}`);
+    const state = stateTarget(track);
+    if (state) {
+      assertSerializedAttribute(track, "opacity", "discrete");
+      result.states.push({ ...track, ...state });
+      continue;
+    }
+    const section = washSection(track.parent);
+    if (section) {
+      assertSerializedAttribute(track, "opacity", "discrete");
+      if (result.washOpacity[section]) throw new Error(`serialized wash ${section} has duplicate opacity track`);
+      result.washOpacity[section] = track;
+      continue;
+    }
+    if (isWashMaster(track.parent)) {
+      assertSerializedAttribute(track, "opacity", "spline");
+      if (result.masters.wash) throw new Error("serialized wash has duplicate master opacity track");
+      result.masters.wash = track;
+      continue;
+    }
+    const parent = track.parent;
+    const flare = flareTarget(parent);
+    if (flare) {
+      assertSerializedAttribute(track, "opacity", "linear");
+      result.flares.push({ ...track, item: flare });
+      continue;
+    }
+    if (parent.name === "g" && parent.attrs.fill === palettes.dark.quiet && directChildren(parent, "text").length === 2) {
+      assertSerializedAttribute(track, "opacity", "discrete");
+      if (result.labels) throw new Error("serialized labels have duplicate opacity tracks");
+      result.labels = track;
+      continue;
+    }
+    if (parent.name === "g" && parent.attrs.opacity === "1" && directChildren(parent, "rect").some((child) => child.attrs.width === "184")) {
+      assertSerializedAttribute(track, "opacity", "spline");
+      if (result.masters.cutoff) throw new Error("serialized cutoff has duplicate master opacity track");
+      result.masters.cutoff = track;
+      continue;
+    }
+    if (parent.name === "g" && parent.attrs.opacity === "1" && parent.parent?.attrs["clip-path"] === "url(#plot)") {
+      assertSerializedAttribute(track, "opacity", "spline");
+      if (result.masters.data) throw new Error("serialized data has duplicate master opacity track");
+      result.masters.data = track;
+      continue;
+    }
+    throw new Error("serialized opacity animation has an unintended direct parent");
+  }
+  if (result.states.length !== records.length * 3 || result.flares.length !== revisions.length || new Set(result.flares.map((track) => track.item.id)).size !== revisions.length || !result.widths.forward || !result.widths.returning || !result.washOpacity.forward || !result.washOpacity.returning || !result.masters.wash || !result.masters.data || !result.masters.cutoff || !result.labels || Object.keys(result.cutoff).length !== 3) {
+    throw new Error("serialized dark SVG is missing an intended animation track");
+  }
+  for (const item of records) {
+    const groups = result.states.filter((track) => track.item.id === item.id);
+    if (groups.length !== 3 || new Set(groups.map((track) => track.which)).size !== 3) throw new Error(`serialized ${item.id} is missing a state opacity track`);
+  }
+  return result;
+}
+function serializedValueAt(track, time) {
+  return valueAt({ keyTimes: track.keyTimes, values: track.values, mode: track.mode, splines: track.splines }, time);
+}
+function near(left, right, detail) {
+  if (Math.abs(left - right) > SERIALIZED_NUMERIC_TOLERANCE) throw new Error(`${detail}: expected ${right}, got ${left}`);
+}
+function serializedSamples(tracks) {
+  const samples = sampleTimes([]);
+  for (const track of tracks) for (const keyTime of track.keyTimes) {
+    const time = keyTime * phase.loop;
+    samples.push(Math.max(0, time - .001), time, Math.min(phase.loop, time + .001));
+  }
+  return [...new Set(samples.map((time) => time.toFixed(12)))].map(Number).sort((a, b) => a - b);
+}
+function isSerializedBoundary(time, tracks) {
+  return tracks.some((track) => track.keyTimes.some((keyTime) => Math.abs(time - keyTime * phase.loop) < 1e-10));
+}
+function flareOpacityAt(item, time) {
+  const moments = [item.available > rail.rest ? timeFirst(item.available) : timeSecond(item.available)];
+  const times = [0, ...moments.flatMap((at) => [Math.max(0, at - .08), at, Math.min(phase.loop, at + .26)]), phase.loop];
+  const unique = [...new Set(times.map((at) => Number(at.toFixed(10))))].sort((a, b) => a - b);
+  const values = unique.map((at) => moments.some((moment) => Math.abs(at - moment) < .001) ? .86 : 0);
+  return valueAt({ times: unique, values, mode: "linear" }, time);
+}
+function verifySerializedAt(serialized, time, allowBoundaryState = false) {
+  const { states, flares, widths, washOpacity, cutoff, masters, labels } = serialized;
+  for (const master of Object.values(masters)) near(serializedValueAt(master, time), valueAt(sharedOpacity, time), `serialized master opacity at ${time}s`);
+  const master = serializedValueAt(masters.data, time);
+  const permittedStatuses = [pureStatusForTime];
+  if (allowBoundaryState) {
+    permittedStatuses.push((item, at) => pureStatusForTime(item, Math.max(0, at - 2 * SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS)));
+    permittedStatuses.push((item, at) => pureStatusForTime(item, Math.min(phase.loop, at + 2 * SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS)));
+  }
+  for (const item of records) {
+    const groups = states.filter((track) => track.item.id === item.id);
+    const actual = Object.fromEntries(groups.map((group) => [group.which, serializedValueAt(group, time) * master]));
+    const matches = permittedStatuses.some((stateAtTime) => {
+      const expected = stateAtTime(item, time);
+      return groups.every((group) => Math.abs(actual[group.which] - (group.which === expected ? Number(opacity[group.which]) * master : 0)) <= SERIALIZED_NUMERIC_TOLERANCE);
+    });
+    if (!matches) throw new Error(`serialized state tracks disagree with the model for ${item.id} at ${time}s: ${JSON.stringify(actual)}`);
+  }
+  for (const flare of flares) near(serializedValueAt(flare, time), flareOpacityAt(flare.item, time), `serialized flare opacity at ${time}s`);
+  const parsedCutoff = serializedValueAt(cutoff.outer, time) + serializedValueAt(cutoff.reset, time) + serializedValueAt(cutoff.returning, time);
+  near(parsedCutoff, cutoffAt(time), `serialized cutoff geometry at ${time}s`);
+  const washMaster = serializedValueAt(masters.wash, time);
+  for (const section of ["forward", "returning"]) {
+    const effectiveOpacity = WASH_OPACITY * washMaster * serializedValueAt(washOpacity[section], time);
+    if (washMaster <= SERIALIZED_NUMERIC_TOLERANCE && effectiveOpacity > SERIALIZED_NUMERIC_TOLERANCE) throw new Error(`serialized wash ${section} is visible while hidden at ${time}s`);
+    if (effectiveOpacity > SERIALIZED_NUMERIC_TOLERANCE) near(rail.left + serializedValueAt(widths[section], time), parsedCutoff, `serialized wash ${section} edge at ${time}s`);
+  }
+  const labelResume = timeSecond(150);
+  const labelAt = (at) => at < phase.reset || at >= labelResume ? 1 : 0;
+  const labelCandidates = allowBoundaryState
+    ? [labelAt(time), labelAt(Math.max(0, time - 2 * SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS)), labelAt(Math.min(phase.loop, time + 2 * SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS))]
+    : [labelAt(time)];
+  if (!labelCandidates.some((expected) => Math.abs(serializedValueAt(labels, time) - expected) <= SERIALIZED_NUMERIC_TOLERANCE)) {
+    throw new Error(`serialized label opacity at ${time}s disagrees with the model`);
+  }
+}
+function verifySerializedModel(serialized) {
+  const samples = serializedSamples(serialized.all);
+  for (const time of samples) verifySerializedAt(serialized, time, isSerializedBoundary(time, serialized.all));
+  let boundaries = 0;
+  for (const track of serialized.all) for (const keyTime of track.keyTimes) {
+    const time = keyTime * phase.loop;
+    verifySerializedAt(serialized, Math.max(0, time - SERIALIZED_BOUNDARY_PROBE_SECONDS));
+    verifySerializedAt(serialized, Math.min(phase.loop, time + SERIALIZED_BOUNDARY_PROBE_SECONDS));
+    verifySerializedAt(serialized, time, true);
+    boundaries += 1;
+  }
+  return { samples: samples.length, boundaries };
+}
+function replaceNth(source, pattern, index, replacement) {
+  let seen = 0;
+  return source.replace(pattern, (match) => (seen++ === index ? replacement : match));
+}
+function swapDistinctValues(source) {
+  return source.replace(/<animate\b[^>]*\bvalues="([^"]+)"[^>]*\/>/, (tag, sourceValues) => {
+    const values = sourceValues.split(";");
+    const other = values.findIndex((value) => value !== values[0]);
+    if (other < 0) throw new Error("self-test could not find distinct animation values");
+    [values[0], values[other]] = [values[other], values[0]];
+    return tag.replace(`values="${sourceValues}"`, `values="${values.join(";")}"`);
+  });
+}
+function shiftFirstKeyTime(source) {
+  return source.replace(/<animate\b[^>]*\bkeyTimes="([^"]+)"[^>]*\/>/, (tag, sourceTimes) => {
+    const times = sourceTimes.split(";");
+    times[1] = String(Number(times[1]) + .01);
+    return tag.replace(`keyTimes="${sourceTimes}"`, `keyTimes="${times.join(";")}"`);
+  });
+}
+function stuckWashWidth(source) {
+  return source.replace(/(<rect\b[^>]*\bwidth="0"[^>]*>)(<animate\b[^>]*\battributeName="width"[^>]*\/>)/, (match, open, animation) => {
+    const values = animation.match(/\bvalues="([^"]+)"/)[1].split(";").map(() => String(rail.rest - rail.left)).join(";");
+    return `${open}${animation.replace(/\bvalues="[^"]+"/, `values="${values}"`)}`;
+  });
+}
+function assertSerializedMutation(name, svg, validate = (candidate) => verifySerializedModel(classifySerializedTracks(parseSerializedSvg(candidate)))) {
+  try {
+    validate(svg);
+  } catch {
+    return "CAUGHT";
+  }
+  throw new Error(`serialized mutation was not caught: ${name}`);
+}
+function assertSerializedLight(svg) {
+  const parsed = parseSerializedSvg(svg);
+  if (parsed.nodes.some((node) => ["animate", "animateTransform", "set"].includes(node.name))) throw new Error("serialized light SVG contains an animation element");
+}
+function assertSerializedSelfTests(svg, lightSvg) {
+  const mutations = [
+    ["wrong-wash-attribute", svg.replace(/(<animate\b[^>]*\battributeName=")width(")/, "$1opacity$2")],
+    ["wash-width-on-parent-g", svg.replace(/(<rect\b[^>]*>)(<animate\b[^>]*\battributeName="width"[^>]*\/>)<\/rect>/, "$1</rect>$2")],
+    ["dropped-track", svg.replace(/<animate\b[^>]*\bcalcMode="discrete"[^>]*\/>/, "")],
+    ["shifted-key-time", shiftFirstKeyTime(svg)],
+    ["swapped-values", swapDistinctValues(svg)],
+    ["stuck-wash-width", stuckWashWidth(svg)],
+    ["duplicate-id", svg.replace('<rect width="1440"', '<rect id="e0-line" width="1440"')],
+    ["missing-master-opacity", replaceNth(svg, /<animate\b[^>]*\bcalcMode="spline"[^>]*\/>/g, 1, "")],
+    ["light-has-animate", lightSvg.replace("</svg>", '<animate attributeName="opacity" dur="28s" repeatCount="indefinite" values="0;1" keyTimes="0;1"/></svg>'), assertSerializedLight],
+  ];
+  const summary = mutations.map(([name, altered, validate]) => `${name}=${assertSerializedMutation(name, altered, validate)}`).join(", ");
+  console.log(`Hero serialized mutation self-test PASS: ${summary}.`);
+}
+function assertSerializedDark(svg, lightSvg) {
+  const parsed = classifySerializedTracks(parseSerializedSvg(svg));
+  const { samples, boundaries } = verifySerializedModel(parsed);
+  assertSerializedSelfTests(svg, lightSvg);
+  console.log(`Hero serialized animation check PASS: ${parsed.all.length} tracks, ${samples} dense samples, ${boundaries} emitted key-time boundaries; ±${SERIALIZED_BOUNDARY_PROBE_SECONDS}s probes are exact outside boundaries (key-time quantization < ${SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS}s).`);
+}
+
+const darkPath = resolve(assets, "hero-dark.svg");
+const darkSvg = hero("dark");
+const lightSvg = hero("light");
+writeFileSync(darkPath, darkSvg);
+assertSerializedDark(readFileSync(darkPath, "utf8"), lightSvg);
+assertSerializedLight(lightSvg);
+writeFileSync(resolve(assets, "hero-light.svg"), lightSvg);
