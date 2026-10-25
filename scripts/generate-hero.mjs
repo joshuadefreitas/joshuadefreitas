@@ -355,27 +355,57 @@ function parseSerializedSvg(svg) {
   const stack = [root];
   const ids = new Map();
   const nodes = [];
-  const tokens = svg.match(/<!--[\s\S]*?-->|<[^>]+>/g) || [];
-  for (const token of tokens) {
-    if (token.startsWith("<?") || token.startsWith("<!--")) continue;
+  const textNodes = [];
+  let offset = 0;
+  const declaration = '<?xml version="1.0" encoding="UTF-8"?>';
+  if (svg.startsWith(declaration)) offset = declaration.length;
+  while (offset < svg.length) {
+    const next = svg.indexOf("<", offset);
+    const text = svg.slice(offset, next < 0 ? svg.length : next);
+    if (text) {
+      if (/&/.test(text)) throw new Error("serialized SVG contains an entity or character reference in text");
+      const parent = stack.at(-1);
+      if (/^[ \t\r\n]+$/.test(text)) {
+        textNodes.push({ parent, text, formatting: true });
+      } else {
+        if (!parent || !["title", "desc", "text"].includes(parent.name) || !/^[A-Za-z0-9 ,.\-']+$/.test(text)) throw new Error("serialized SVG has text outside its permitted text elements");
+        textNodes.push({ parent, text, formatting: false });
+      }
+    }
+    if (next < 0) break;
+    if (svg.startsWith("<!--", next)) throw new Error("serialized SVG contains a comment");
+    if (svg.startsWith("<?", next)) throw new Error("serialized SVG contains a processing instruction");
+    if (svg.startsWith("<!", next)) throw new Error("serialized SVG contains a declaration or CDATA section");
+    const end = svg.indexOf(">", next + 1);
+    if (end < 0) throw new Error("serialized SVG has an unclosed tag");
+    const token = svg.slice(next, end + 1);
+    offset = end + 1;
     if (token.startsWith("</")) {
-      const name = token.slice(2, -1).trim();
+      const match = token.match(/^<\/([A-Za-z][\w:-]*)\s*>$/);
+      if (!match) throw new Error(`serialized SVG has an unreadable closing token: ${token}`);
+      const [, name] = match;
       if (stack.length === 1 || stack.at(-1).name !== name) throw new Error(`serialized SVG has an unbalanced </${name}>`);
       stack.pop();
       continue;
     }
-    const match = token.match(/^<([\w:-]+)\b([\s\S]*?)(\/?)>$/);
+    const match = token.match(/^<([A-Za-z][\w:-]*)([\s\S]*)>$/);
     if (!match) throw new Error(`serialized SVG has an unreadable token: ${token}`);
-    const [, name, sourceAttrs, slash] = match;
+    const [, name, rawAttrs] = match;
+    const selfClosing = /\/\s*$/.test(rawAttrs);
+    const sourceAttrs = selfClosing ? rawAttrs.replace(/\/\s*$/, "") : rawAttrs;
     const attrs = {};
-    const attrPattern = /([\w:-]+)\s*=\s*(["'])(.*?)\2/g;
-    let attr;
-    while ((attr = attrPattern.exec(sourceAttrs))) {
+    let attrPos = 0;
+    while (attrPos < sourceAttrs.length) {
+      const gap = sourceAttrs.slice(attrPos).match(/^\s+/);
+      if (!gap) throw new Error(`serialized SVG has unreadable attributes on <${name}>`);
+      attrPos += gap[0].length;
+      if (attrPos === sourceAttrs.length) break;
+      const attr = sourceAttrs.slice(attrPos).match(/^([A-Za-z_:][\w:.-]*)\s*=\s*(["'])([^<>&]*?)\2/);
+      if (!attr) throw new Error(`serialized SVG has unreadable attributes on <${name}>`);
       if (Object.hasOwn(attrs, attr[1])) throw new Error(`serialized SVG repeats ${attr[1]} on <${name}>`);
       attrs[attr[1]] = attr[3];
+      attrPos += attr[0].length;
     }
-    const leftovers = sourceAttrs.replace(attrPattern, "").replace(/\//g, "").trim();
-    if (leftovers) throw new Error(`serialized SVG has unreadable attributes on <${name}>`);
     const node = { name, attrs, children: [], parent: stack.at(-1) };
     node.parent.children.push(node);
     nodes.push(node);
@@ -383,10 +413,88 @@ function parseSerializedSvg(svg) {
       if (ids.has(attrs.id)) throw new Error(`serialized SVG duplicates id=${attrs.id}`);
       ids.set(attrs.id, node);
     }
-    if (!slash) stack.push(node);
+    if (!selfClosing) stack.push(node);
   }
   if (stack.length !== 1) throw new Error(`serialized SVG leaves <${stack.at(-1).name}> open`);
-  return { root, nodes, ids };
+  return { root, nodes, ids, textNodes };
+}
+const SERIALIZED_ELEMENT_ATTRIBUTES = Object.freeze({
+  svg: new Set(["xmlns", "viewBox", "role", "aria-labelledby"]),
+  title: new Set(["id"]),
+  desc: new Set(["id"]),
+  defs: new Set(),
+  linearGradient: new Set(["id", "x1", "x2", "y1", "y2"]),
+  stop: new Set(["offset", "stop-color", "stop-opacity"]),
+  clipPath: new Set(["id"]),
+  rect: new Set(["x", "y", "width", "height", "rx", "fill", "stroke", "stroke-opacity", "stroke-width"]),
+  g: new Set(["id", "opacity", "fill", "stroke", "stroke-opacity", "stroke-width", "shape-rendering", "clip-path", "transform", "font-family", "font-size", "letter-spacing"]),
+  path: new Set(["id", "d", "fill", "stroke", "stroke-linecap", "stroke-opacity", "stroke-width"]),
+  circle: new Set(["cx", "cy", "r", "fill", "stroke", "stroke-opacity", "stroke-width"]),
+  use: new Set(["href", "stroke", "stroke-width", "stroke-dasharray", "stroke-opacity"]),
+  animate: new Set(["attributeName", "calcMode", "dur", "repeatCount", "values", "keyTimes", "keySplines"]),
+  animateTransform: new Set(["attributeName", "type", "calcMode", "dur", "repeatCount", "values", "keyTimes"]),
+  text: new Set(["x", "y"]),
+});
+function addSerializedReference(references, id, node, kind) {
+  if (!references.has(id)) references.set(id, []);
+  references.get(id).push({ node, kind });
+}
+function isDrawableDefinition(node) {
+  if (node.name === "path") return Boolean(node.attrs.d);
+  if (node.name === "g") return node.children.some(isDrawableDefinition);
+  return ["rect", "circle"].includes(node.name);
+}
+function assertSerializedAllowlist(parsed, theme) {
+  if (parsed.root.children.length !== 1 || parsed.root.children[0].name !== "svg") throw new Error("serialized SVG must have one svg root");
+  const references = new Map();
+  for (const node of parsed.nodes) {
+    const allowed = SERIALIZED_ELEMENT_ATTRIBUTES[node.name];
+    if (!allowed) throw new Error(`serialized SVG has unsupported <${node.name}>`);
+    for (const [name, value] of Object.entries(node.attrs)) {
+      if (name.startsWith("on")) throw new Error(`serialized SVG has an event attribute ${name}`);
+      if (!allowed.has(name)) throw new Error(`serialized SVG has unsupported ${name} on <${node.name}>`);
+      if (/&/.test(value)) throw new Error(`serialized SVG has an entity or character reference in ${name}`);
+    }
+    if (["animate", "animateTransform"].includes(node.name) && theme !== "dark") throw new Error("serialized light SVG contains an animation element");
+    if (node.name === "use") {
+      const href = node.attrs.href;
+      if (!href || !/^#[A-Za-z][\w.-]*$/.test(href)) throw new Error("serialized <use> must have a local fragment href");
+      addSerializedReference(references, href.slice(1), node, "use");
+    }
+    for (const [name, value] of Object.entries(node.attrs)) {
+      const url = value.match(/^url\(#([A-Za-z][\w.-]*)\)$/);
+      if (url) {
+        if (![["fill", "linearGradient"], ["clip-path", "clipPath"]].some(([attribute, target]) => name === attribute && target)) {
+          throw new Error(`serialized SVG has an unsupported local URL in ${name}`);
+        }
+        addSerializedReference(references, url[1], node, name);
+      } else if (value.includes("url(")) {
+        throw new Error(`serialized SVG has an unsupported URL value in ${name}`);
+      }
+    }
+    if (node.name === "svg" && node.attrs["aria-labelledby"]) {
+      for (const id of node.attrs["aria-labelledby"].split(/\s+/)) {
+        if (!/^[A-Za-z][\w.-]*$/.test(id)) throw new Error("serialized SVG has an invalid aria-labelledby reference");
+        addSerializedReference(references, id, node, "aria-labelledby");
+      }
+    }
+  }
+  for (const [id, uses] of references) {
+    const target = parsed.ids.get(id);
+    if (!target) throw new Error(`serialized SVG references missing id=${id}`);
+    for (const { node, kind } of uses) {
+      if (kind === "use" && (target.parent?.name !== "defs" || !isDrawableDefinition(target))) {
+        throw new Error(`serialized <use> target #${id} is not a drawable definition`);
+      }
+      if (kind === "fill" && target.name !== "linearGradient") throw new Error(`serialized fill target #${id} is not a linearGradient`);
+      if (kind === "clip-path" && target.name !== "clipPath") throw new Error(`serialized clip-path target #${id} is not a clipPath`);
+      if (kind === "aria-labelledby" && !["title", "desc"].includes(target.name)) throw new Error(`serialized aria-labelledby target #${id} is not title or desc`);
+      if (!node) throw new Error("serialized SVG has an invalid reference");
+    }
+  }
+  for (const id of parsed.ids.keys()) {
+    if (!references.has(id)) throw new Error(`serialized SVG defines unused id=${id}`);
+  }
 }
 function directChildren(node, name) {
   return node.children.filter((child) => child.name === name);
@@ -659,7 +767,12 @@ function stuckWashWidth(source) {
     return `${open}${animation.replace(/\bvalues="[^"]+"/, `values="${values}"`)}`;
   });
 }
-function assertSerializedMutation(name, svg, validate = (candidate) => verifySerializedModel(classifySerializedTracks(parseSerializedSvg(candidate)))) {
+function validateSerializedDark(candidate) {
+  const parsed = parseSerializedSvg(candidate);
+  assertSerializedAllowlist(parsed, "dark");
+  return verifySerializedModel(classifySerializedTracks(parsed));
+}
+function assertSerializedMutation(name, svg, validate = validateSerializedDark) {
   try {
     validate(svg);
   } catch {
@@ -669,28 +782,91 @@ function assertSerializedMutation(name, svg, validate = (candidate) => verifySer
 }
 function assertSerializedLight(svg) {
   const parsed = parseSerializedSvg(svg);
-  if (parsed.nodes.some((node) => ["animate", "animateTransform", "set"].includes(node.name))) throw new Error("serialized light SVG contains an animation element");
+  assertSerializedAllowlist(parsed, "light");
+}
+function declarationForMutation() {
+  return '<?xml version="1.0" encoding="UTF-8"?>';
 }
 function assertSerializedSelfTests(svg, lightSvg) {
+  const withFirstAnimationAttribute = (name, value) => svg.replace(/(<animate(?:Transform)?\b[^>]*)(\/>)/, `$1 ${name}="${value}"$2`);
+  const truncateFirstValues = (source) => source.replace(/(<animate\b[^>]*\bvalues=")([^"]+)("[^>]*\/>)/, (match, before, values, after) => `${before}${values.split(";").slice(0, -1).join(";")}${after}`);
+  const reorderFirstKeyTimes = (source) => source.replace(/(<animate\b[^>]*\bkeyTimes=")([^"]+)("[^>]*\/>)/, (match, before, sourceTimes, after) => {
+    const times = sourceTimes.split(";");
+    [times[1], times[2]] = [times[2], times[1]];
+    return `${before}${times.join(";")}${after}`;
+  });
+  const brokenSplineCount = svg.replace(/\bkeySplines="([^"]+);[^"]+"/, 'keySplines="$1"');
+  const cutoffValues = `values="${rail.rest} 0;${rail.right} 0;${rail.right} 0;${rail.right} 0;${rail.right} 0"`;
   const mutations = [
+    ["wrong-opacity-attribute", svg.replace(/(<animate\b[^>]*\battributeName=")opacity(")/, "$1width$2")],
     ["wrong-wash-attribute", svg.replace(/(<animate\b[^>]*\battributeName=")width(")/, "$1opacity$2")],
+    ["wrong-transform-attribute", svg.replace(/(<animateTransform\b[^>]*\battributeName=")transform(")/, "$1opacity$2")],
     ["wash-width-on-parent-g", svg.replace(/(<rect\b[^>]*>)(<animate\b[^>]*\battributeName="width"[^>]*\/>)<\/rect>/, "$1</rect>$2")],
     ["dropped-track", svg.replace(/<animate\b[^>]*\bcalcMode="discrete"[^>]*\/>/, "")],
+    ["extra-track", svg.replace("</svg>", '<animate attributeName="opacity" dur="28s" repeatCount="indefinite" values="0;1" keyTimes="0;1"/></svg>')],
     ["shifted-key-time", shiftFirstKeyTime(svg)],
+    ["reordered-key-times", reorderFirstKeyTimes(svg)],
+    ["key-time-out-of-range", svg.replace(/\bkeyTimes="0;/, 'keyTimes="-0.1;')],
+    ["values-key-times-mismatch", truncateFirstValues(svg)],
     ["swapped-values", swapDistinctValues(svg)],
+    ["truncated-values", truncateFirstValues(svg)],
+    ["duration-changed", svg.replace('dur="28s"', 'dur="27s"')],
+    ["begin-added", withFirstAnimationAttribute("begin", "1s")],
+    ["end-added", withFirstAnimationAttribute("end", "1s")],
+    ["from-added", withFirstAnimationAttribute("from", "0")],
+    ["to-added", withFirstAnimationAttribute("to", "1")],
+    ["by-added", withFirstAnimationAttribute("by", "1")],
+    ["additive-added", withFirstAnimationAttribute("additive", "sum")],
+    ["accumulate-added", withFirstAnimationAttribute("accumulate", "sum")],
+    ["animation-fill-added", withFirstAnimationAttribute("fill", "freeze")],
+    ["min-added", withFirstAnimationAttribute("min", "1s")],
+    ["max-added", withFirstAnimationAttribute("max", "2s")],
+    ["restart-added", withFirstAnimationAttribute("restart", "never")],
+    ["repeat-count-changed", svg.replace('repeatCount="indefinite"', 'repeatCount="2"')],
+    ["discrete-made-linear", svg.replace('calcMode="discrete"', 'calcMode="linear"')],
+    ["bad-spline-count", brokenSplineCount],
     ["stuck-wash-width", stuckWashWidth(svg)],
     ["duplicate-id", svg.replace('<rect width="1440"', '<rect id="e0-line" width="1440"')],
+    ["missing-use-target", svg.replace('id="e0-line"', 'id="e0-line-gone"')],
     ["missing-master-opacity", replaceNth(svg, /<animate\b[^>]*\bcalcMode="spline"[^>]*\/>/g, 1, "")],
+    ["altered-master-opacity", svg.replace('values="1;1;0;1;1"', 'values="1;1;1;1;1"')],
+    ["altered-cutoff-translate", svg.replace(cutoffValues, `values="${rail.rest} 0;${rail.right - 1} 0;${rail.right - 1} 0;${rail.right - 1} 0;${rail.right - 1} 0"`)],
+    ["missing-flare-track", svg.replace(/(<circle\b[^>]*\bstroke-width="1"\/>)(<animate\b[^>]*\/>)(<\/g>)/, "$1$3")],
+    ["altered-label-opacity", svg.replace(/(<g fill="#667788"[\s\S]*?<animate\b[^>]*\bvalues=")[^"]+/, "$11;1;1;1;1")],
     ["light-has-animate", lightSvg.replace("</svg>", '<animate attributeName="opacity" dur="28s" repeatCount="indefinite" values="0;1" keyTimes="0;1"/></svg>'), assertSerializedLight],
+    ["script-inserted", svg.replace("</svg>", "<script/></svg>")],
+    ["foreign-object-inserted", svg.replace("</svg>", "<foreignObject/></svg>")],
+    ["external-xlink-href", svg.replace("<use href=", '<use xlink:href="https://invalid.example/shape" href=')],
+    ["dark-animate-motion", svg.replace("</svg>", '<animateMotion dur="28s"/></svg>')],
+    ["light-animate-motion", lightSvg.replace("</svg>", '<animateMotion dur="28s"/></svg>'), assertSerializedLight],
+    ["unclosed-svg", svg.replace("</svg>", "")],
+    ["oddly-quoted-attribute", svg.replace('dur="28s"', "dur=28s")],
+    ["cdata-inserted", svg.replace("</svg>", "<![CDATA[x]]></svg>")],
+    ["comment-inserted", svg.replace("</svg>", "<!--x--></svg>")],
+    ["unknown-entity-text", svg.replace("</svg>", "&mystery;</svg>")],
+    ["set-inserted", svg.replace("</svg>", "<set/></svg>")],
+    ["style-inserted", svg.replace("</svg>", "<style/></svg>")],
+    ["onload-added", svg.replace("<svg ", '<svg onload="alert(1)" ')],
+    ["image-inserted", svg.replace("</svg>", '<image href="#field"/></svg>')],
+    ["scheme-href", svg.replace(/<use href="#[^"]+"/, '<use href="https://invalid.example/shape"')],
+    ["text-outside-text-element", svg.replace("</defs>", "outside</defs>")],
+    ["duplicated-attribute", svg.replace('<rect width="1440"', '<rect width="1440" width="1"')],
+    ["unknown-rect-attribute", svg.replace('<rect width="1440"', '<rect nope="1" width="1440"')],
+    ["unknown-defs-child", svg.replace("</defs>", '<radialGradient id="extra"/></defs>')],
+    ["doctype-inserted", svg.replace(declarationForMutation(), '<!DOCTYPE svg>' + declarationForMutation())],
+    ["processing-instruction-inserted", svg.replace(declarationForMutation(), declarationForMutation() + "<?test value?>")],
+    ["use-targets-gradient", svg.replace(/<use href="#[^"]+"/, '<use href="#field"')],
   ];
-  const summary = mutations.map(([name, altered, validate]) => `${name}=${assertSerializedMutation(name, altered, validate)}`).join(", ");
-  console.log(`Hero serialized mutation self-test PASS: ${summary}.`);
+  const rows = mutations.map(([name, altered, validate]) => `| ${name} | ${assertSerializedMutation(name, altered, validate)} |`).join("\n");
+  console.log(`Hero serialized mutation self-test PASS:\n| Mutation | Result |\n| --- | --- |\n${rows}`);
 }
 function assertSerializedDark(svg, lightSvg) {
-  const parsed = classifySerializedTracks(parseSerializedSvg(svg));
-  const { samples, boundaries } = verifySerializedModel(parsed);
+  const parsed = parseSerializedSvg(svg);
+  assertSerializedAllowlist(parsed, "dark");
+  const tracks = classifySerializedTracks(parsed);
+  const { samples, boundaries } = verifySerializedModel(tracks);
   assertSerializedSelfTests(svg, lightSvg);
-  console.log(`Hero serialized animation check PASS: ${parsed.all.length} tracks, ${samples} dense samples, ${boundaries} emitted key-time boundaries; ±${SERIALIZED_BOUNDARY_PROBE_SECONDS}s probes are exact outside boundaries (key-time quantization < ${SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS}s).`);
+  console.log(`Hero serialized animation check PASS: ${tracks.all.length} tracks, ${samples} dense samples, ${boundaries} emitted key-time boundaries; ±${SERIALIZED_BOUNDARY_PROBE_SECONDS}s probes are exact outside boundaries (key-time quantization < ${SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS}s).`);
 }
 
 const darkPath = resolve(assets, "hero-dark.svg");
