@@ -67,8 +67,8 @@ Shows what npm install scripts actually touch, spawn, and call. Good to know bef
 <sub>Published on npm · strace-based runtime trace</sub>
 </td>
 <td width="50%" valign="top">
-<a href="https://sekiyalab.github.io"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg" alt="Sekiya, public, research, Python · JavaScript" width="360"></picture></a><br>
-My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, release equivalence.<br>
+<a href="https://sekiyalab.github.io"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg" alt="Sekiya, public, institute, Python · JavaScript" width="360"></picture></a><br>
+My independent institute. Empirical research on how autonomous agents behave, and technology for understanding difficult systems.<br>
 <sub>7 public studies</sub>
 </td>
 </tr>

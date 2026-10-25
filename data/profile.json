@@ -90,8 +90,8 @@
       "title": "Sekiya",
       "aside": "",
       "visibility": "PUBLIC",
-      "maturity": "RESEARCH",
-      "thesis": "My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, release equivalence.",
+      "maturity": "INSTITUTE",
+      "thesis": "My independent institute. Empirical research on how autonomous agents behave, and technology for understanding difficult systems.",
       "tech": {
         "icon": "python",
         "label": "Python · JavaScript"
