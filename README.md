@@ -68,8 +68,8 @@ Shows what npm install scripts actually touch, spawn, and call. Good to know bef
 </td>
 <td width="50%" valign="top">
 <a href="https://sekiyalab.github.io"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg" alt="Sekiya, public, research, Python · JavaScript" width="360"></picture></a><br>
-My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields.<br>
-<sub>7 public studies · live neural-field study</sub>
+My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, release equivalence.<br>
+<sub>7 public studies</sub>
 </td>
 </tr>
 </table>

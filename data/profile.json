@@ -91,12 +91,12 @@
       "aside": "",
       "visibility": "PUBLIC",
       "maturity": "RESEARCH",
-      "thesis": "My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields.",
+      "thesis": "My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, release equivalence.",
       "tech": {
         "icon": "python",
         "label": "Python · JavaScript"
       },
-      "evidence": "7 public studies · live neural-field study",
+      "evidence": "7 public studies",
       "href": "https://sekiyalab.github.io"
     }
   ],
