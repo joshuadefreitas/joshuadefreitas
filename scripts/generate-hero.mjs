@@ -1,11 +1,65 @@
 #!/usr/bin/env node
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { closeSync, cpSync, fsyncSync, mkdtempSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const assets = resolve(root, "assets");
 mkdirSync(assets, { recursive: true });
+
+// This reference file pins independently reviewed pixels. Changing the design
+// is a deliberate, reviewed act and requires --update-golden.
+const heroFiles = Object.freeze(["assets/hero-dark.svg", "assets/hero-light.svg"]);
+const goldenPath = resolve(assets, "hero.sha256");
+const digest = (text) => createHash("sha256").update(text, "utf8").digest("hex");
+function goldenText(hashes) {
+  return heroFiles.map((file) => `${hashes.get(file)}  ${file}`).join("\n") + "\n";
+}
+function readGolden() {
+  let text;
+  try {
+    text = readFileSync(goldenPath, "utf8");
+  } catch {
+    throw new Error("hero reference file is missing");
+  }
+  const lines = text.split("\n").filter(Boolean);
+  if (lines.length !== heroFiles.length) throw new Error("hero reference file must contain exactly two hashes");
+  const hashes = new Map();
+  for (const line of lines) {
+    const match = line.match(/^([a-f0-9]{64})  (assets\/hero-(?:dark|light)\.svg)$/);
+    if (!match || !heroFiles.includes(match[2]) || hashes.has(match[2])) throw new Error("hero reference file has an invalid entry");
+    hashes.set(match[2], match[1]);
+  }
+  if (hashes.size !== heroFiles.length) throw new Error("hero reference file is incomplete");
+  return hashes;
+}
+function generatedHashes(dark, light) {
+  return new Map([[heroFiles[0], digest(dark)], [heroFiles[1], digest(light)]]);
+}
+function assertGolden(dark, light, expected) {
+  const actual = generatedHashes(dark, light);
+  for (const file of heroFiles) if (actual.get(file) !== expected.get(file)) throw new Error(`hero reference mismatch: ${file}`);
+}
+function writeAtomically(path, text) {
+  const temporary = join(dirname(path), `.${basename(path)}.${process.pid}.${Date.now()}.tmp`);
+  let descriptor;
+  try {
+    descriptor = openSync(temporary, "wx", 0o600);
+    writeFileSync(descriptor, text, "utf8");
+    fsyncSync(descriptor);
+    closeSync(descriptor);
+    descriptor = undefined;
+    renameSync(temporary, path);
+    const directory = openSync(dirname(path), "r");
+    try { fsyncSync(directory); } finally { closeSync(directory); }
+  } catch (error) {
+    if (descriptor !== undefined) closeSync(descriptor);
+    throw error;
+  }
+}
 
 function mulberry32(seed) {
   return () => {
@@ -772,6 +826,11 @@ function validateSerializedDark(candidate) {
   assertSerializedAllowlist(parsed, "dark");
   return verifySerializedModel(classifySerializedTracks(parsed));
 }
+function validatePair(dark, light, expected) {
+  validateSerializedDark(dark);
+  assertSerializedLight(light);
+  assertGolden(dark, light, expected);
+}
 function assertSerializedMutation(name, svg, validate = validateSerializedDark) {
   try {
     validate(svg);
@@ -787,7 +846,7 @@ function assertSerializedLight(svg) {
 function declarationForMutation() {
   return '<?xml version="1.0" encoding="UTF-8"?>';
 }
-function assertSerializedSelfTests(svg, lightSvg) {
+function assertSerializedSelfTests(svg, lightSvg, expected) {
   const withFirstAnimationAttribute = (name, value) => svg.replace(/(<animate(?:Transform)?\b[^>]*)(\/>)/, `$1 ${name}="${value}"$2`);
   const truncateFirstValues = (source) => source.replace(/(<animate\b[^>]*\bvalues=")([^"]+)("[^>]*\/>)/, (match, before, values, after) => `${before}${values.split(";").slice(0, -1).join(";")}${after}`);
   const reorderFirstKeyTimes = (source) => source.replace(/(<animate\b[^>]*\bkeyTimes=")([^"]+)("[^>]*\/>)/, (match, before, sourceTimes, after) => {
@@ -856,23 +915,104 @@ function assertSerializedSelfTests(svg, lightSvg) {
     ["doctype-inserted", svg.replace(declarationForMutation(), '<!DOCTYPE svg>' + declarationForMutation())],
     ["processing-instruction-inserted", svg.replace(declarationForMutation(), declarationForMutation() + "<?test value?>")],
     ["use-targets-gradient", svg.replace(/<use href="#[^"]+"/, '<use href="#field"')],
+    ["dark-viewbox-changed", svg.replace('viewBox="0 0 1440 300"', 'viewBox="0 0 1441 300"'), (candidate) => validatePair(candidate, lightSvg, expected)],
+    ["light-viewbox-changed", lightSvg.replace('viewBox="0 0 1440 300"', 'viewBox="0 0 1441 300"'), (candidate) => validatePair(svg, candidate, expected)],
+    ["gradient-stop-colour-changed", svg.replace('stop-color="#0d1117"', 'stop-color="#0d1118"'), (candidate) => validatePair(candidate, lightSvg, expected)],
+    ["grid-stroke-changed", svg.replace('stroke="#27313a"', 'stroke="#27313b"'), (candidate) => validatePair(candidate, lightSvg, expected)],
+    ["path-geometry-changed", svg.replace(/<path id="e0-line" d="[^"]+"/, '<path id="e0-line" d="M0 0"'), (candidate) => validatePair(candidate, lightSvg, expected)],
+    ["extra-overlay-rect", svg.replace("</svg>", '<rect x="0" y="0" width="1" height="1" fill="#0d1117"/></svg>'), (candidate) => validatePair(candidate, lightSvg, expected)],
+    ["grid-transform-added", svg.replace('<g fill="none" stroke="#27313a"', '<g transform="translate(1 0)" fill="none" stroke="#27313a"'), (candidate) => validatePair(candidate, lightSvg, expected)],
+    ["cutoff-clip-path-removed", svg.replace('<g clip-path="url(#plot)"><g transform="translate(900 0)">', '<g><g transform="translate(900 0)">'), (candidate) => validatePair(candidate, lightSvg, expected)],
+    ["title-replaced", svg.replace(">Two clocks</title>", ">Another title</title>"), (candidate) => validatePair(candidate, lightSvg, expected)],
   ];
   const rows = mutations.map(([name, altered, validate]) => `| ${name} | ${assertSerializedMutation(name, altered, validate)} |`).join("\n");
   console.log(`Hero serialized mutation self-test PASS:\n| Mutation | Result |\n| --- | --- |\n${rows}`);
 }
-function assertSerializedDark(svg, lightSvg) {
+function assertSerializedDark(svg, lightSvg, expected) {
   const parsed = parseSerializedSvg(svg);
   assertSerializedAllowlist(parsed, "dark");
   const tracks = classifySerializedTracks(parsed);
   const { samples, boundaries } = verifySerializedModel(tracks);
-  assertSerializedSelfTests(svg, lightSvg);
+  if (!process.env.HERO_SKIP_SELF_TESTS) assertSerializedSelfTests(svg, lightSvg, expected);
   console.log(`Hero serialized animation check PASS: ${tracks.all.length} tracks, ${samples} dense samples, ${boundaries} emitted key-time boundaries; ±${SERIALIZED_BOUNDARY_PROBE_SECONDS}s probes are exact outside boundaries (key-time quantization < ${SERIALIZED_KEY_TIME_QUANTIZATION_SECONDS}s).`);
 }
 
+const injectedChanges = Object.freeze({
+  "dark-viewbox-changed": (svg) => svg.replace('viewBox="0 0 1440 300"', 'viewBox="0 0 1441 300"'),
+  "light-viewbox-changed": (svg) => svg.replace('viewBox="0 0 1440 300"', 'viewBox="0 0 1441 300"'),
+  "gradient-stop-colour-changed": (svg) => svg.replace('stop-color="#0d1117"', 'stop-color="#0d1118"'),
+  "grid-stroke-changed": (svg) => svg.replace('stroke="#27313a"', 'stroke="#27313b"'),
+  "path-geometry-changed": (svg) => svg.replace(/<path id="e0-line" d="[^"]+"/, '<path id="e0-line" d="M0 0"'),
+  "extra-overlay-rect": (svg) => svg.replace("</svg>", '<rect x="0" y="0" width="1" height="1" fill="#0d1117"/></svg>'),
+  "grid-transform-added": (svg) => svg.replace('<g fill="none" stroke="#27313a"', '<g transform="translate(1 0)" fill="none" stroke="#27313a"'),
+  "cutoff-clip-path-removed": (svg) => svg.replace('<g clip-path="url(#plot)"><g transform="translate(900 0)">', '<g><g transform="translate(900 0)">'),
+  "title-replaced": (svg) => svg.replace(">Two clocks</title>", ">Another title</title>"),
+  "duration-changed": (svg) => svg.replace('dur="28s"', 'dur="27s"'),
+});
+function injectChange(theme, svg) {
+  const name = process.env.HERO_TEST_CHANGE;
+  if (!name) return svg;
+  const change = injectedChanges[name];
+  if (!change) throw new Error(`unknown test change: ${name}`);
+  if ((name === "light-viewbox-changed") !== (theme === "light")) return svg;
+  if (name === "light-viewbox-changed" || theme === "dark") return change(svg);
+  return svg;
+}
+function runCommand(command, args, options = {}) {
+  const result = spawnSync(command, args, { encoding: "utf8", ...options });
+  if (result.status !== 0) throw new Error(`${command} failed: ${(result.stderr || result.stdout || "").trim()}`);
+  return result.stdout;
+}
+function fileHashes(directory) {
+  return heroFiles.map((file) => digest(readFileSync(resolve(directory, file), "utf8"))).join(" ");
+}
+function assertNoWriteOnFailure() {
+  const temporary = mkdtempSync(join(tmpdir(), "hero-write-check-"));
+  const copy = join(temporary, "repo");
+  try {
+    cpSync(root, copy, { recursive: true, filter: (source) => basename(source) !== ".git" });
+    runCommand("git", ["init", "--quiet", copy]);
+    runCommand("git", ["-C", copy, "add", "-A"]);
+    runCommand("git", ["-C", copy, "-c", "user.name=check", "-c", "user.email=check@example.invalid", "commit", "--quiet", "-m", "hero check baseline"]);
+    const cases = [...Object.keys(injectedChanges).map((name) => [name, []]), ["update-golden-refuses-invalid", ["--update-golden"]]];
+    const rows = [];
+    for (const [name, args] of cases) {
+      const change = name === "update-golden-refuses-invalid" ? "duration-changed" : name;
+      const before = fileHashes(copy);
+      const result = spawnSync(process.execPath, [resolve(copy, "scripts/generate-hero.mjs"), ...args], {
+        cwd: copy,
+        encoding: "utf8",
+        env: { ...process.env, HERO_SKIP_SELF_TESTS: "1", HERO_TEST_CHANGE: change },
+      });
+      const after = fileHashes(copy);
+      const status = runCommand("git", ["-C", copy, "status", "--porcelain"]);
+      if (result.status === 0 || before !== after || status) throw new Error(`write safety check failed: ${name}`);
+      rows.push(`| ${name} | CAUGHT | unchanged |`);
+    }
+    console.log(`Hero write safety self-test PASS (temporary repository clean):\n| Change | Result | Files |\n| --- | --- | --- |\n${rows.join("\n")}`);
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
+}
+
+const options = new Set(process.argv.slice(2));
+for (const option of options) if (!new Set(["--update-golden", "--self-check"]).has(option)) throw new Error(`unknown option: ${option}`);
 const darkPath = resolve(assets, "hero-dark.svg");
-const darkSvg = hero("dark");
-const lightSvg = hero("light");
-writeFileSync(darkPath, darkSvg);
-assertSerializedDark(readFileSync(darkPath, "utf8"), lightSvg);
-assertSerializedLight(lightSvg);
-writeFileSync(resolve(assets, "hero-light.svg"), lightSvg);
+const lightPath = resolve(assets, "hero-light.svg");
+const darkSvg = injectChange("dark", hero("dark"));
+const lightSvg = injectChange("light", hero("light"));
+const expected = options.has("--update-golden") ? generatedHashes(darkSvg, lightSvg) : readGolden();
+
+assertSerializedDark(darkSvg, lightSvg, expected);
+validatePair(darkSvg, lightSvg, expected);
+
+writeAtomically(darkPath, darkSvg);
+writeAtomically(lightPath, lightSvg);
+const writtenDark = readFileSync(darkPath, "utf8");
+const writtenLight = readFileSync(lightPath, "utf8");
+validatePair(writtenDark, writtenLight, expected);
+if (options.has("--update-golden")) {
+  writeAtomically(goldenPath, goldenText(expected));
+  assertGolden(writtenDark, writtenLight, readGolden());
+}
+if (options.has("--self-check")) assertNoWriteOnFailure();

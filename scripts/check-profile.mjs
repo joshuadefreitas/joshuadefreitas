@@ -8,6 +8,7 @@
  * overflows its header/strip (needs a `chromium` binary; skipped with a clear message if absent).
  */
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -21,6 +22,7 @@ const check = (label, ok, detail = "") => { results.push(ok); console.log(`${ok 
 
 const read = (p) => readFileSync(resolve(root, p), "utf8");
 const walk = (dir) => readdirSync(resolve(root, dir), { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]);
+const sha256 = (text) => createHash("sha256").update(text, "utf8").digest("hex");
 
 // ------------------------------------------------------------------------------------------------ stale generated files
 const generated = build(profile);
@@ -60,6 +62,25 @@ check("every picture has a matching dark and light source", pictures.length > 0 
 const svgNames = new Set(walk("assets").filter((p) => p.endsWith(".svg") && !p.includes("/icons/") && !p.includes("hero-")));
 const unpaired = [...svgNames].filter((p) => !svgNames.has(p.replace(/-(dark|light)\.svg$/, (m, t) => (t === "dark" ? "-light.svg" : "-dark.svg"))));
 check("every generated SVG has its dark/light counterpart on disk", unpaired.length === 0, unpaired.slice(0, 3).join(", "));
+let heroReferenceOk = true;
+let heroReferenceDetail = "";
+try {
+  const heroFiles = ["assets/hero-dark.svg", "assets/hero-light.svg"];
+  const entries = read("assets/hero.sha256").split("\n").filter(Boolean).map((line) => {
+    const match = line.match(/^([a-f0-9]{64})  (assets\/hero-(?:dark|light)\.svg)$/);
+    if (!match) throw new Error("invalid entry");
+    return [match[2], match[1]];
+  });
+  const expected = new Map(entries);
+  if (entries.length !== heroFiles.length || expected.size !== heroFiles.length || heroFiles.some((file) => !expected.has(file))) throw new Error("incomplete reference");
+  const mismatches = heroFiles.filter((file) => sha256(read(file)) !== expected.get(file));
+  heroReferenceOk = mismatches.length === 0;
+  heroReferenceDetail = mismatches.length ? mismatches.join(", ") : "2 reviewed files";
+} catch (error) {
+  heroReferenceOk = false;
+  heroReferenceDetail = error.message;
+}
+check("hero SVG files match the reviewed-pixels manifest", heroReferenceOk, heroReferenceDetail);
 
 // ------------------------------------------------------------------------------------------------ SVG hygiene
 const svgFiles = walk("assets").filter((p) => p.endsWith(".svg") && !p.includes("/icons/"));

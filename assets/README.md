@@ -3,6 +3,8 @@
 Everything here is generated from deterministic geometry and `data/profile.json`; no analytics, third-party image service,
 external font, or runtime dependency is involved.
 
+`hero.sha256` pins the independently reviewed hero pixels; a design change requires deliberate review and an updated manifest.
+
 | Path | Source |
 |---|---|
 | `hero-dark.svg`, `hero-light.svg` | `../scripts/generate-hero.mjs` |
