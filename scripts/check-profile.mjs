@@ -26,7 +26,7 @@ const walk = (dir) => readdirSync(resolve(root, dir), { withFileTypes: true }).f
 const generated = build(profile);
 const stale = [...generated].filter(([p, t]) => !existsSync(resolve(root, p)) || read(p) !== t).map(([p]) => p);
 check("generated assets and README are current (not stale)", stale.length === 0, stale.length ? stale.slice(0, 4).join(", ") : `${generated.size} files`);
-const generatedDirs = ["assets/cards"];
+const generatedDirs = ["assets/cards", "assets/tiles"];
 const extra = [...generatedDirs.flatMap(walk), ...readdirSync(resolve(root, "assets")).filter((f) => /^(focus|tech)-strip-.*\.svg$/.test(f)).map((f) => `assets/${f}`)].filter((p) => !generated.has(p));
 check("no orphaned generated SVGs (everything on disk is produced from data/profile.json)", extra.length === 0, extra.join(", "));
 
@@ -142,7 +142,7 @@ if (process.argv.includes("--render")) {
       for (const d of document.querySelectorAll('[data-n]')) {
         const svg=d.querySelector('svg'), vb=svg.viewBox.baseVal, name=d.dataset.n, isCard=name.includes('/cards/');
         for (const t of svg.querySelectorAll('text')) {
-          const b=t.getBBox(), pad=isCard?1:6;
+          const b=t.getBBox(), pad=isCard||name.includes('/tiles/')?1:6;
           if (b.x<pad-0.5||b.x+b.width>vb.width-pad+0.5) bad.push(name+': "'+t.textContent.slice(0,40)+'" x '+b.x.toFixed(1)+'..'+(b.x+b.width).toFixed(1)+' of '+vb.width);
           if (b.y<2||b.y+b.height>vb.height-2) bad.push(name+': "'+t.textContent.slice(0,40)+'" y out of bounds');
           if (isCard && t.getAttribute('font-size')==='14.5' && b.x+b.width>356) bad.push(name+': thesis runs into the motif');

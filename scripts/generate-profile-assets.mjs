@@ -97,6 +97,29 @@ function motif(id, box, p, accent) {
   return out + `</g>`;
 }
 
+// ------------------------------------------------------------------------------------------------ glyphs (44x44 box)
+function glyph(kind, p) {
+  const e = p.edge, n = p.panel2, g = p.muted, b = p.blue, c = p.copper;
+  const node = (x, y, r, col = g) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${n}" stroke="${col}" stroke-width="1.6"/>`;
+  const line = (d, col = e) => `<path d="${d}" stroke="${col}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  switch (kind) {
+    case "terminal": return line("M6 12 L22 22 L6 32") + line("M26 34 H40") + node(34, 12, 4, b) + line("M30 15 L24 20", e);
+    case "loop": return line("M22 6 A16 16 0 0 1 38 22") + line("M38 22 A16 16 0 0 1 22 38") + line("M22 38 A16 16 0 0 1 6 22") + line("M6 22 A16 16 0 0 1 22 6") +
+      node(22, 6, 4) + node(38, 22, 4, b) + node(22, 38, 4) + node(6, 22, 4) + node(22, 22, 3, c);
+    case "lattice": {
+      let s = "";
+      for (let i = 0; i < 3; i++) { s += line(`M8 ${10 + i * 12} H36`) + line(`M${10 + i * 12} 8 V36`); }
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s += node(10 + i * 12, 10 + j * 12, i === 1 && j === 1 ? 4 : 3, i === 1 && j === 1 ? b : g);
+      return s;
+    }
+    case "series": return line("M4 38 H40") + line("M6 30 L14 22 L22 26 L30 12 L38 16", g) + node(6, 30, 3) + node(14, 22, 3) + node(22, 26, 3) + node(30, 12, 4, b) + node(38, 16, 3);
+    case "layers": return line("M8 12 H36") + line("M8 22 H36") + line("M8 32 H36") + line("M22 12 V32", e) + node(22, 12, 4) + node(22, 22, 4, b) + node(22, 32, 4);
+    case "boundary": return `<rect x="6" y="8" width="32" height="28" rx="3" fill="none" stroke="${e}" stroke-width="1.6" stroke-dasharray="3 3"/>` +
+      line("M2 22 H15") + line("M29 22 H42") + node(22, 22, 6, c) + node(22, 22, 2, c);
+    default: throw new Error("unknown glyph " + kind);
+  }
+}
+
 // ------------------------------------------------------------------------------------------------ svg shells
 function svg(width, height, title, body, extraDefs = "") {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${esc(title)}">` +
@@ -161,19 +184,28 @@ function techStrip(profile, theme) {
   return { w: STRIP_W, h, svg: svg(STRIP_W, h, `Tools: ${profile.tech.map((t) => t.label).join(", ")}`, body) };
 }
 
+const TILE = { w: 200, h: 84 };
+function tile(item, theme, profile) {
+  const p = profile.palette[theme], f = F(profile);
+  const lines = wrap(item.title, TILE.w - 40, 15, 2);
+  let body = `<g transform="translate(2 2) scale(.82)">${glyph(item.glyph, p)}</g>`;
+  lines.forEach((l, i) => { body += `<text x="2" y="${lines.length === 1 ? 70 : 58 + i * 18}" font-family="${f.sans}" font-size="15" font-weight="650" fill="${p.text}">${esc(l)}</text>`; });
+  return svg(TILE.w, TILE.h, item.title, body);
+}
+
 // Project header: an accent strip (hairline, pills, tech, topology motif, name), not a container. Description and evidence are real text below it.
-const CARD = { w: 480, h: 92 };
+const CARD = { w: 360, h: 88 };
 function card(item, theme, profile) {
   const p = profile.palette[theme], f = F(profile);
   const accent = item.visibility === "PRIVATE" ? p.copper : p.blue;
-  let body = `<path d="M0 .5 H${CARD.w}" stroke="${p.border}" stroke-width="1"/>` + motif(item.id, { x: 372, y: 10, w: 104, h: 72 }, p, accent);
+  let body = `<path d="M0 .5 H${CARD.w}" stroke="${p.border}" stroke-width="1"/>` + motif(item.id, { x: 272, y: 6, w: 84, h: 46 }, p, accent);
   const a = pill(1, 18, item.visibility, accent, f), b = pill(1 + a.w + 8, 18, item.maturity, p.muted, f);
   const tx = 1 + a.w + 8 + b.w + 16;
   body += a.svg + b.svg +
     `<g transform="translate(${num(tx)} 21) scale(${num(14 / 24)})"><path d="${iconPath(item.tech.icon)}" fill="${p.muted}"/></g>` +
     `<text x="${num(tx + 20)}" y="33" font-family="${f.mono}" font-size="11.5" fill="${p.muted}">${esc(item.tech.label)}</text>`;
-  body += `<text x="1" y="74" font-family="${f.sans}" font-size="26" font-weight="650" fill="${p.text}">${esc(item.title)}</text>`;
-  if (sansWidth(item.title, 26) > 300) throw new Error("project title too wide: " + item.title);
+  body += `<text x="1" y="72" font-family="${f.sans}" font-size="23" font-weight="650" fill="${p.text}">${esc(item.title)}</text>`;
+  if (sansWidth(item.title, 23) > 350) throw new Error("project title too wide: " + item.title);
   return svg(CARD.w, CARD.h, `${item.title}, ${item.visibility.toLowerCase()}, ${item.maturity.toLowerCase()}, ${item.tech.label}`, body);
 }
 
@@ -184,6 +216,13 @@ function picture(profile, kind, stem, alt, width, height) {
   return `<picture><source media="(prefers-color-scheme: dark)" srcset="${base}/${stem}-dark.svg"><source media="(prefers-color-scheme: light)" srcset="${base}/${stem}-light.svg"><img src="${base}/${stem}-light.svg" alt="${esc(alt)}"${dims}></picture>`;
 }
 const slug = (s) => s.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+function grid(cells, cols) {
+  const pct = Math.floor(100 / cols);
+  const rows = [];
+  for (let i = 0; i < cells.length; i += cols) rows.push(cells.slice(i, i + cols));
+  return `<table width="100%">\n` + rows.map((r) => `<tr>\n` + r.map((c) => `<td width="${pct}%" valign="top">\n${c}\n</td>`).join("\n") + `\n</tr>`).join("\n") + `\n</table>`;
+}
 
 function readme(profile) {
   const hero = (name, ext) => `https://raw.githubusercontent.com/${profile.repo}/main/assets/${name}.${ext}`;
@@ -197,12 +236,14 @@ function readme(profile) {
   out.push(`# ${profile.name}\n`);
   out.push(`${profile.positioning}\n`);
   out.push(picture(profile, "", "focus-strip", `Focus: ${profile.focus.join(", ")}`, STRIP_W) + "\n");
+  out.push(`### What I build\n`);
+  out.push(grid(profile.tiles.map((t) => `${picture(profile, "tiles", `tile-${t.id}`, t.title, TILE.w)}<br>\n<sub>${esc(t.text)}</sub>`), 3) + "\n");
   out.push(`### Current work\n`);
   out.push(`${esc(profile.private_note)}\n`);
-  for (const c of profile.cards) {
+  out.push(grid(profile.cards.map((c) => {
     const pic = picture(profile, "cards", `card-${c.id}`, `${c.title}, ${c.visibility.toLowerCase()}, ${c.maturity.toLowerCase()}, ${c.tech.label}`, CARD.w);
-    out.push(`${c.href ? `<a href="${c.href}">${pic}</a>` : pic}<br>\n${esc(c.thesis)}<br>\n<sub>${esc(c.evidence)}</sub>\n`);
-  }
+    return `${c.href ? `<a href="${c.href}">${pic}</a>` : pic}<br>\n${esc(c.thesis)}<br>\n<sub>${esc(c.evidence)}</sub>`;
+  }), 2) + "\n");
   out.push(`### More public work\n`);
   out.push(profile.public_work.map((w) => `- [**${w.name}**](${w.url}) <sub>${w.stack}</sub> — ${w.text}`).join("\n") + "\n");
   out.push(`### Tools\n`);
@@ -217,6 +258,7 @@ export function build(profile) {
   for (const theme of THEMES) {
     files.set(`assets/focus-strip-${theme}.svg`, focusStrip(profile, theme).svg);
     files.set(`assets/tech-strip-${theme}.svg`, techStrip(profile, theme).svg);
+    for (const t of profile.tiles) files.set(`assets/tiles/tile-${t.id}-${theme}.svg`, tile(t, theme, profile));
     for (const c of profile.cards) files.set(`assets/cards/card-${c.id}-${theme}.svg`, card(c, theme, profile));
   }
   files.set("README.md", readme(profile));

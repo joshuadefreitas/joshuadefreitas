@@ -86,17 +86,17 @@
       "href": "https://github.com/joshuadefreitas/trace-npm"
     },
     {
-      "id": "computational-studies",
-      "title": "Computational studies",
+      "id": "sekiya",
+      "title": "Sekiya",
       "aside": "",
       "visibility": "PUBLIC",
       "maturity": "RESEARCH",
-      "thesis": "Studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields. All reproducible.",
+      "thesis": "My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields.",
       "tech": {
         "icon": "python",
         "label": "Python · JavaScript"
       },
-      "evidence": "7 public Sekiya studies · live neural-field study",
+      "evidence": "7 public studies · live neural-field study",
       "href": "https://sekiyalab.github.io"
     }
   ],
@@ -187,5 +187,43 @@
   "limits": {
     "max_svg_bytes": 24000,
     "min_contrast": 4.5
-  }
+  },
+  "tiles": [
+    {
+      "id": "developer-tools",
+      "title": "Developer tools",
+      "glyph": "terminal",
+      "text": "Tools for seeing what coding agents and npm scripts are really up to."
+    },
+    {
+      "id": "autonomous-systems",
+      "title": "Autonomous systems",
+      "glyph": "loop",
+      "text": "Agents that do real work, plus a record of how they did it."
+    },
+    {
+      "id": "simulation",
+      "title": "Simulation & GPU",
+      "glyph": "lattice",
+      "text": "Simulation and GPU compute that gives the same numbers every time."
+    },
+    {
+      "id": "quantitative-research",
+      "title": "Quantitative research",
+      "glyph": "series",
+      "text": "Point-in-time data, careful evaluation, and the occasional null result."
+    },
+    {
+      "id": "research-infrastructure",
+      "title": "Research infrastructure",
+      "glyph": "layers",
+      "text": "Claims written down before the data shows up, so a study can't quietly change its mind."
+    },
+    {
+      "id": "systems-security",
+      "title": "Systems & security",
+      "glyph": "boundary",
+      "text": "Seeing what install scripts actually do, and keeping local tooling locked down."
+    }
+  ]
 }

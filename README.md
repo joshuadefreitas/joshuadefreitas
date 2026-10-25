@@ -10,25 +10,69 @@ Developer tools, simulations, research systems, and whatever else seemed like a 
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-light.svg" alt="Focus: Developer tools, Autonomous systems, Simulation, Quantitative research, Systems &amp; security" width="480"></picture>
 
+### What I build
+
+<table width="100%">
+<tr>
+<td width="33%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-developer-tools-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-developer-tools-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-developer-tools-light.svg" alt="Developer tools" width="200"></picture><br>
+<sub>Tools for seeing what coding agents and npm scripts are really up to.</sub>
+</td>
+<td width="33%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-autonomous-systems-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-autonomous-systems-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-autonomous-systems-light.svg" alt="Autonomous systems" width="200"></picture><br>
+<sub>Agents that do real work, plus a record of how they did it.</sub>
+</td>
+<td width="33%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-simulation-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-simulation-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-simulation-light.svg" alt="Simulation &amp; GPU" width="200"></picture><br>
+<sub>Simulation and GPU compute that gives the same numbers every time.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-quantitative-research-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-quantitative-research-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-quantitative-research-light.svg" alt="Quantitative research" width="200"></picture><br>
+<sub>Point-in-time data, careful evaluation, and the occasional null result.</sub>
+</td>
+<td width="33%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-research-infrastructure-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-research-infrastructure-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-research-infrastructure-light.svg" alt="Research infrastructure" width="200"></picture><br>
+<sub>Claims written down before the data shows up, so a study can't quietly change its mind.</sub>
+</td>
+<td width="33%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-systems-security-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-systems-security-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/tiles/tile-systems-security-light.svg" alt="Systems &amp; security" width="200"></picture><br>
+<sub>Seeing what install scripts actually do, and keeping local tooling locked down.</sub>
+</td>
+</tr>
+</table>
+
 ### Current work
 
 Some of the more interesting stuff is private, so you get what it does, not the code.
 
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg" alt="agentctl, private, v1, Python" width="480"></picture><br>
+<table width="100%">
+<tr>
+<td width="50%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-agentctl-light.svg" alt="agentctl, private, v1, Python" width="360"></picture><br>
 Keeps tabs on coding agents: what ran, what finished, what got interrupted, and where to pick it back up.<br>
 <sub>71 tests · 22 live acceptance checks · 4 review rounds</sub>
-
-<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg" alt="parity, private, v0, Rust · wgpu" width="480"></picture><br>
+</td>
+<td width="50%" valign="top">
+<picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-parity-light.svg" alt="parity, private, v0, Rust · wgpu" width="360"></picture><br>
 Checks that the same computation gives the same answer on different hardware. Harder than it sounds.<br>
 <sub>2 fixtures · equivalence criteria locked in before any backend evidence</sub>
-
-<a href="https://github.com/joshuadefreitas/trace-npm"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg" alt="trace-npm, public, alpha, npm · Linux" width="480"></picture></a><br>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<a href="https://github.com/joshuadefreitas/trace-npm"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-trace-npm-light.svg" alt="trace-npm, public, alpha, npm · Linux" width="360"></picture></a><br>
 Shows what npm install scripts actually touch, spawn, and call. Good to know before you run one.<br>
 <sub>Published on npm · strace-based runtime trace</sub>
-
-<a href="https://sekiyalab.github.io"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-computational-studies-light.svg" alt="Computational studies, public, research, Python · JavaScript" width="480"></picture></a><br>
-Studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields. All reproducible.<br>
-<sub>7 public Sekiya studies · live neural-field study</sub>
+</td>
+<td width="50%" valign="top">
+<a href="https://sekiyalab.github.io"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/cards/card-sekiya-light.svg" alt="Sekiya, public, research, Python · JavaScript" width="360"></picture></a><br>
+My research lab. Computational studies on things that are easy to get subtly wrong: leakage, point-in-time data, neural fields.<br>
+<sub>7 public studies · live neural-field study</sub>
+</td>
+</tr>
+</table>
 
 ### More public work
 
