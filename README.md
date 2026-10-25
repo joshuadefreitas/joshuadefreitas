@@ -6,7 +6,7 @@
 
 # Joshua de Freitas
 
-Developer tools, simulations, research systems, and whatever else seemed like a good idea at the time.
+Developer tools, simulations, research systems, and whatever else seemed like a good idea at the time. 😈
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-light.svg"><img src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/focus-strip-light.svg" alt="Focus: Developer tools, Autonomous systems, Simulation, Quantitative research, Systems &amp; security" width="480"></picture>
 
