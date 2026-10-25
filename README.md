@@ -6,12 +6,10 @@
 
 # Joshua de Freitas
 
-I build systems at the edge of computation, intelligence, and security.
+I build software and computational systems, mostly around AI, data, infrastructure, simulation, and quantitative research.
 
-My work spans autonomous systems, machine learning, data, infrastructure, simulation, and quantitative computation. Some of it is public; much of it isn't.
+This GitHub contains tools, experiments, research projects, and parts of larger systems. Some are finished projects; others are working research or infrastructure that became useful enough to keep.
 
-The repositories here are experiments, tools, research, and pieces of larger systems that can stand on their own.
-
-I also work through [Sekiya](https://sekiyalab.github.io), an independent research institute studying autonomous-agent behavior.
+I also work through [Sekiya](https://sekiyalab.github.io), an independent research project studying autonomous-agent behavior.
 
 [Website](https://joshuadefreitas.github.io) · [LinkedIn](https://www.linkedin.com/in/defreitasjoshua/)
