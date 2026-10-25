@@ -6,7 +6,7 @@
  *   node scripts/generate-profile-assets.mjs --check    exit 1 if any generated file differs from disk
  *
  * Deterministic: no network, no external fonts, no clock. Same JSON in, same bytes out.
- * The hero (assets/hero-*.svg|gif) is produced by generate-hero.mjs and is not touched here.
+ * The hero SVGs are produced by generate-hero.mjs and are not touched here.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -228,9 +228,9 @@ function readme(profile) {
   const hero = (name, ext) => `https://raw.githubusercontent.com/${profile.repo}/main/assets/${name}.${ext}`;
   const out = [];
   out.push(`<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="${hero("hero-dark", "gif")}">
+  <source media="(prefers-color-scheme: dark)" srcset="${hero("hero-dark", "svg")}">
   <source media="(prefers-color-scheme: light)" srcset="${hero("hero-light", "svg")}">
-  <img alt="Abstract computational topology: systems, evidence routes, and state nodes" src="${hero("hero-light", "svg")}">
+  <img alt="Two time rails showing observations, delayed availability, corrections, and an information cutoff" src="${hero("hero-light", "svg")}">
 </picture>
 `);
   out.push(`# ${profile.name}\n`);

@@ -1,7 +1,7 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-dark.gif">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-light.svg">
-  <img alt="Abstract computational topology: systems, evidence routes, and state nodes" src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-light.svg">
+  <img alt="Two time rails showing observations, delayed availability, corrections, and an information cutoff" src="https://raw.githubusercontent.com/joshuadefreitas/joshuadefreitas/main/assets/hero-light.svg">
 </picture>
 
 # Joshua de Freitas
